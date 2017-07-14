@@ -42,4 +42,31 @@ class EventoDAO {
         
         return $eventos;
     }
+
+    /**
+     * 
+     * @return Evento
+     */
+    public function salvar($titulo, $status = NULL, $cor = NULL, $confirmacao = NULL, 
+        $nomeArquivoLogomarca = NULL, $nomeArquivoPlanodefundo = NULL) {
+        try {
+            $this->pdo->beginTransaction();
+
+            $preparedStatement = $dbh->prepare('INSERT INTO evento (titulo, logomarca, cor, confirmacao, planodefundo, status, datahora) VALUES (?, ?, ?, ?, ?, ?, ?)');
+
+             $preparedStatement->execute(array(
+                $titulo,
+                $nomeArquivoLogomarca,
+                $cor,
+                $confirmacao,
+                $nomeArquivoPlanodefundo,
+                $status,
+                date()
+            ));
+
+            $this->pdo->commit();
+        } catch(PDOException $e) {
+            $this->pdo->rollBack();
+        }
+    }
 }

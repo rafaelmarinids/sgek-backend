@@ -51,6 +51,41 @@ $app->group('/rs', function () {
         $eventoBusiness = EventoBusiness::getInstance($this->db);
         
         return $response->withJson($eventoBusiness->listar());
+    });
+
+    /*
+     * Recupera um evento por id.
+     */
+    $this->get('/eventos/{id}', function ($request, $response, $args) {
+        $eventoBusiness = EventoBusiness::getInstance($this->db);
+        
+        return $response->withJson($eventoBusiness->recuperar((int) $args["id"]));
+    });
+
+    /*
+     * Salva um evento.
+     */
+    $this->post('/eventos', function ($request, $response, $args) {
+        $eventoBusiness = EventoBusiness::getInstance($this->db);
+
+        $parametros = $request->getParsedBody();
+
+        $arquivos = $request->getUploadedFiles();
+
+        try {
+            $evento = $eventoBusiness->salvar(filter_var($parametros['titulo'], FILTER_SANITIZE_STRING),
+                filter_var($parametros['status'], FILTER_SANITIZE_STRING),
+                filter_var($parametros['cor'], FILTER_SANITIZE_STRING),
+                filter_var($parametros['confirmacao'], FILTER_SANITIZE_STRING),
+                $arquivos && count($arquivos) && array_key_exists("logomarca", $arquivos) ? $arquivos["logomarca"] : NULL,
+                $arquivos && count($arquivos) && array_key_exists("planodefundo", $arquivos) ? $arquivos["planodefundo"] : NULL);
+            
+            return $response->withJson($evento);
+        } catch (\Exception $e) {
+            return $response->withStatus(500)
+                    ->withHeader('Content-Type', 'text/plain')
+                    ->write($e->getMessage());
+        }
     }); 
 })->add($validacaoRenovacaoMiddleware)->add($jwtAuthenticationMiddleware);
 

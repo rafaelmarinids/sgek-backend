@@ -23,6 +23,6 @@ return [
             'user' => 'root',
             'pass' => '',
             'dbname' => 'sgek'
-        ],
+        ]
     ],
 ];
