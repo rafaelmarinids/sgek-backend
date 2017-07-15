@@ -23,10 +23,6 @@ class UsuarioDAO {
      * @return Usuario
      */
     public function recuperar($email) {
-        //try {
-            //$this->pdo->beginTransaction();
-        //} catch(PDOException $e) {}
-        
         $statement = $this->pdo->prepare('SELECT * FROM usuario u WHERE u.email = :email');
         
         $statement->execute(array(

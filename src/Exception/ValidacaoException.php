@@ -13,12 +13,12 @@ class ValidacaoException extends \Exception {
     private $mensagemComParametro = "O campo %s é inválido!";
 
     public function __construct($field = NULL, $message = NULL, $code = 0, Exception $previous = null) {
-        if (!$mensagem && $field) {
-            $message = printf($this->mensagemComParametro, $field);
-        } else if ($mensagem && $field) {
-            $message = printf($mensagem, $field);
+        if (!$message && $field) {
+            $message = sprintf($this->mensagemComParametro, $field);
+        } else if ($message && $field) {
+            $message = sprintf($message, $field);
         } else {
-            $message = $this->mensagem;
+            $message = $this->message;
         }
     
         parent::__construct($message, $code, $previous);

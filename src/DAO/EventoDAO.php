@@ -3,6 +3,7 @@
 namespace DAO;
 
 use \Model\Evento;
+use \Slim\Http\UploadedFile;
 
 /**
  * 
@@ -16,6 +17,36 @@ class EventoDAO {
     public function __construct($pdo) {
         $this->pdo = $pdo;
     }
+
+    /**
+     * 
+     * @return Evento
+     */
+    public function recuperar($id) {        
+        $statement = $this->pdo->prepare('SELECT * FROM evento e WHERE e.id = ?');
+        
+        $statement->execute(array(
+            $id
+        ));
+
+        $resultado = $statement->fetch();
+        
+        if ($resultado) {
+            $evento = new Evento();
+            $evento->setId((int) $resultado["id"]);
+            $evento->setStatus($resultado["status"]);
+            $evento->setTitulo($resultado["titulo"]);
+            $evento->setLogomarca($resultado["logomarca"]);
+            $evento->setCor($resultado["cor"]);
+            $evento->setConfirmacao($resultado["confirmacao"] ? TRUE : FALSE);
+            $evento->setPlanodefundo($resultado["planodefundo"]);
+            $evento->setDatahora(date( 'd/m/Y H:i:s', strtotime($resultado["datahora"])));
+            
+            return $evento;
+        }
+        
+        return NULL;
+    }
     
     /**
      * 
@@ -28,14 +59,14 @@ class EventoDAO {
         
         foreach ($this->pdo->query($sql) as $resultado) {
             $evento = new Evento();
-            $evento->setId($resultado["id"]);
+            $evento->setId((int) $resultado["id"]);
+            $evento->setStatus($resultado["status"]);
             $evento->setTitulo($resultado["titulo"]);
             $evento->setLogomarca($resultado["logomarca"]);
             $evento->setCor($resultado["cor"]);
-            $evento->setConfirmacao($resultado["confirmacao"]);
+            $evento->setConfirmacao($resultado["confirmacao"] ? TRUE : FALSE);
             $evento->setPlanodefundo($resultado["planodefundo"]);
-            $evento->setStatus($resultado["status"]);
-            $evento->setDatahora($resultado["datahora"]);
+            $evento->setDatahora(date( 'd/m/Y H:i:s', strtotime($resultado["datahora"])));
             
             $eventos[] = $evento;
         }
@@ -47,26 +78,78 @@ class EventoDAO {
      * 
      * @return Evento
      */
-    public function salvar($titulo, $status = NULL, $cor = NULL, $confirmacao = NULL, 
+    public function inserir($titulo, $status = NULL, $cor = NULL, $confirmacao = NULL, 
         $nomeArquivoLogomarca = NULL, $nomeArquivoPlanodefundo = NULL) {
         try {
             $this->pdo->beginTransaction();
 
-            $preparedStatement = $dbh->prepare('INSERT INTO evento (titulo, logomarca, cor, confirmacao, planodefundo, status, datahora) VALUES (?, ?, ?, ?, ?, ?, ?)');
+            $preparedStatement = $this->pdo->prepare('INSERT INTO evento (titulo, logomarca, cor, confirmacao, planodefundo, status, datahora) VALUES (?, ?, ?, ?, ?, ?, NOW())');
 
-             $preparedStatement->execute(array(
+            $preparedStatement->execute(array(
                 $titulo,
                 $nomeArquivoLogomarca,
                 $cor,
                 $confirmacao,
                 $nomeArquivoPlanodefundo,
-                $status,
-                date()
+                $status
             ));
 
             $this->pdo->commit();
         } catch(PDOException $e) {
             $this->pdo->rollBack();
         }
+
+        return $this->pdo->lastInsertId();
+    }
+
+    /**
+     * 
+     * @return Evento
+     */
+    public function editar($id, $titulo, $status = NULL, $cor = NULL, $confirmacao = NULL, 
+        $nomeArquivoLogomarca = NULL, $nomeArquivoPlanodefundo = NULL) {
+        try {
+            $this->pdo->beginTransaction();
+
+            $preparedStatement = $this->pdo->prepare("UPDATE evento e SET e.titulo = ?, logomarca = ?, cor = ?, confirmacao = ?, planodefundo = ?, status = ? WHERE e.id = ?");
+
+            $editado = $preparedStatement->execute(array(
+                $titulo,
+                $nomeArquivoLogomarca,
+                $cor,
+                $confirmacao,
+                $nomeArquivoPlanodefundo,
+                $status,
+                $id
+            ));
+
+            $this->pdo->commit();
+        } catch(PDOException $e) {
+            $this->pdo->rollBack();
+        }
+
+        return isset($editado) && $editado == 1 ? TRUE : FALSE;
+    }
+
+    /**
+     * 
+     * @return Evento
+     */
+    public function excluir($id) {
+        try {
+            $this->pdo->beginTransaction();
+
+            $preparedStatement = $this->pdo->prepare('DELETE FROM evento WHERE id = ?');
+
+            $excluido = $preparedStatement->execute(array(
+                $id
+            ));
+
+            $this->pdo->commit();
+        } catch(PDOException $e) {
+            $this->pdo->rollBack();
+        }
+
+        return isset($excluido) && $excluido == 1 ? TRUE : FALSE;
     }
 }
