@@ -111,17 +111,38 @@ class EventoDAO {
         try {
             $this->pdo->beginTransaction();
 
-            $preparedStatement = $this->pdo->prepare("UPDATE evento e SET e.titulo = ?, logomarca = ?, cor = ?, confirmacao = ?, planodefundo = ?, status = ? WHERE e.id = ?");
+            $sql = "UPDATE evento e SET e.titulo = ?";
 
-            $editado = $preparedStatement->execute(array(
-                $titulo,
-                $nomeArquivoLogomarca,
-                $cor,
-                $confirmacao,
-                $nomeArquivoPlanodefundo,
-                $status,
-                $id
-            ));
+            if ($nomeArquivoLogomarca) {
+                $sql .= ", logomarca = ?";
+            }
+
+            if ($nomeArquivoPlanodefundo) {
+                $sql .= ", planodefundo = ?";
+            }
+
+            $sql .= ", cor = ?, confirmacao = ?, status = ? WHERE e.id = ?";
+
+            $preparedStatement = $this->pdo->prepare($sql);
+
+            $parametros = array(
+                $titulo
+            );
+
+            if ($nomeArquivoLogomarca) {
+                $parametros[] = $nomeArquivoLogomarca;
+            }
+
+            if ($nomeArquivoPlanodefundo) {
+                $parametros[] = $nomeArquivoPlanodefundo;
+            }
+
+            $parametros[] = $cor;
+            $parametros[] = $confirmacao;
+            $parametros[] = $status;
+            $parametros[] = $id;
+
+            $editado = $preparedStatement->execute($parametros);
 
             $this->pdo->commit();
         } catch(PDOException $e) {

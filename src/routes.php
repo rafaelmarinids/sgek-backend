@@ -98,7 +98,9 @@ $app->group('/rs', function () {
     /*
      * Edita um evento.
      */
-    $this->put('/eventos/{id}', function ($request, $response, $args) {
+    // O PHP não implementa um parser para requisção PUT do tipo multipart-formdata.
+    //$this->put('/eventos/{id}', function ($request, $response, $args) {
+    $this->post('/eventos/{id}', function ($request, $response, $args) {
         $eventoBusiness = EventoBusiness::getInstance($this->db);
 
         $parametros = $request->getParsedBody();
@@ -139,6 +141,15 @@ $app->group('/rs', function () {
         }
     });
 })->add($validacaoRenovacaoMiddleware)->add($jwtAuthenticationMiddleware);
+
+/*
+ * Recupera uma imagem de acordo com o parâmetro.
+ */
+$app->get('/eventos/imagens/{nome}', function ($request, $response, $args) {
+    $response->write(file_get_contents(__DIR__ . "/../uploads/" . $args["nome"]));
+
+    return $response->withHeader("Content-Type", FILEINFO_MIME_TYPE);
+});
 
 /*
  * Formulário de teste para login.

@@ -99,6 +99,8 @@ class EventoBusiness {
         
         $eventoDAO = new EventoDAO($this->pdo);
 
+        $confirmacao = $confirmacao == "true" ? TRUE : FALSE;
+
         if (!$id) { // INSERIR
             $id = $eventoDAO->inserir($titulo, $status, $cor, $confirmacao, $nomeArquivoLogomarca, $nomeArquivoPlanodefundo);
 
@@ -183,7 +185,7 @@ class EventoBusiness {
         }
 
         // Valida o tipo de arquivo imagem.
-        $mimyTypesArray = array("image/gif", "image/jpeg", "image/jpg", "image/png", "image/svg+xml"); 
+        $mimyTypesArray = array("image/gif", "image/jpeg", "image/jpg", "image/png"); 
 
         if (!in_array($uploadedFile->getClientMediaType(), $mimyTypesArray)) {
             throw new ValidacaoException("A imagem da logomarca deve ser GIF, JPG, PNG.", "%s");
@@ -210,7 +212,7 @@ class EventoBusiness {
         }
 
         // Valida o tipo de arquivo imagem.
-        $mimyTypesArray = array("image/gif", "image/jpeg", "image/jpg", "image/png", "image/svg+xml"); 
+        $mimyTypesArray = array("image/gif", "image/jpeg", "image/jpg", "image/png"); 
 
         if (!in_array($uploadedFile->getClientMediaType(), $mimyTypesArray)) {
             throw new ValidacaoException("A imagem da logomarca deve ser GIF, JPG, PNG.", "%s");
