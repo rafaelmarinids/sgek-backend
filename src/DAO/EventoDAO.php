@@ -52,8 +52,14 @@ class EventoDAO {
      * 
      * @return Evento
      */
-    public function listar() {        
-        $sql = 'SELECT * FROM evento e ORDER BY e.id DESC';
+    public function listar($status = NULL) {        
+        $sql = "SELECT * FROM evento e ";
+
+        if ($status) {
+            $sql .= "WHERE e.status = '" . $status . "' ";
+        }
+
+        $sql .= "ORDER BY e.id DESC";
         
         $eventos = array();
         

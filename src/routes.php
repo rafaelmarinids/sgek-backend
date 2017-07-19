@@ -12,6 +12,7 @@
 
 use \Business\UsuarioBusiness;
 use \Business\EventoBusiness;
+use \Business\ImportacaoBusiness;
 
 /*
  * Webservices.
@@ -49,8 +50,14 @@ $app->group('/rs', function () {
      */
     $this->get('/eventos', function ($request, $response, $args) {
         $eventoBusiness = EventoBusiness::getInstance($this->db);
+
+        $parametros = $request->getQueryParams();
+
+        $status = is_array($parametros) && array_key_exists("status", $parametros) ? filter_var($parametros["status"], FILTER_SANITIZE_STRING) : NULL;
+
+        $eventos = $eventoBusiness->listar($status);
         
-        return $response->withJson($eventoBusiness->listar());
+        return $response->withJson($eventos);
     });
 
     /*
@@ -134,6 +141,35 @@ $app->group('/rs', function () {
             $eventoBusiness->excluir((int) $args["id"]);
 
             return $response->withStatus(204);
+        } catch (\Exception $e) {
+            return $response->withStatus(500)
+                    ->withHeader('Content-Type', 'text/plain')
+                    ->write($e->getMessage());
+        }
+    });
+
+    /*
+     * Processa as informações extraídas do arquivo excel
+     * e retorna as informações de inscrição.
+     */
+    $this->post('/importacao', function ($request, $response, $args) {
+        $importacaoBusiness = ImportacaoBusiness::getInstance($this->db);
+
+        $parametros = $request->getParsedBody();
+
+        $arquivos = $request->getUploadedFiles();
+
+        try {
+            $importacao = $importacaoBusiness->processarImportacao($_FILES["excel"]["tmp_name"], 
+                $arquivos["excel"]->getClientFilename(),
+                $arquivos["excel"]->getClientMediaType());
+
+            $eventoBusiness = EventoBusiness::getInstance($this->db);
+
+            $importacao->setId($parametros["evento"]);
+            $importacao->setEvento($eventoBusiness->recuperar($parametros["evento"]));
+            
+            return $response->withJson($importacao);
         } catch (\Exception $e) {
             return $response->withStatus(500)
                     ->withHeader('Content-Type', 'text/plain')

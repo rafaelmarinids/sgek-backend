@@ -39,10 +39,10 @@ class EventoBusiness {
      * 
      * @return type
      */
-    public function listar() {        
+    public function listar($status = NULL) {        
         $eventoDAO = new EventoDAO($this->pdo);
         
-        return $eventoDAO->listar();
+        return $eventoDAO->listar($status);
     }
 
     /**
