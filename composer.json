@@ -1,9 +1,6 @@
 {
     "name": "sgek-backend",
     "description": "",
-    "keywords": [],
-    "homepage": "",
-    "license": "",
     "authors": [
         {
             "name": "Rafael Marini de Souza",
@@ -17,14 +14,6 @@
         "monolog/monolog": "^1.17",
         "tuupola/slim-jwt-auth": "^2.3",
         "phpoffice/phpspreadsheet": "dev-develop"
-    },
-    "require-dev": {
-        "phpunit/phpunit": ">=4.8 < 6.0"
-    },
-    "autoload-dev": {
-        "psr-4": {
-            "Tests\\": "tests/"
-        }
     },
     "scripts": {
         "start": "php -S 0.0.0.0:8080 -t public public/index.php",
