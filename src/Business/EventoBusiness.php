@@ -115,6 +115,10 @@ class EventoBusiness {
             $evento = $eventoDAO->recuperar($id);
 
             if ($evento) {
+                if ($evento->getImportacaoRealizada() && $status == "Dados não importados") {
+                    $status = "Ativo";
+                }
+
                 $editado = $eventoDAO->editar($id, $titulo, $status, $cor, $confirmacao, $nomeArquivoLogomarca, $nomeArquivoPlanodefundo);
 
                 if ($editado) {

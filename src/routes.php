@@ -151,8 +151,11 @@ $app->group('/rs', function () {
     /*
      * Processa as informações extraídas do arquivo excel
      * e retorna as informações de inscrição.
+     *
+     * Processa as informações extraídas do arquivo excel
+     * e salva as informações de acordo com as colunas selecionadas.
      */
-    $this->post('/importacao', function ($request, $response, $args) {
+    $this->post('/importacao[/{id}]', function ($request, $response, $args) {
         $importacaoBusiness = ImportacaoBusiness::getInstance($this->db);
 
         $parametros = $request->getParsedBody();
@@ -160,15 +163,21 @@ $app->group('/rs', function () {
         $arquivos = $request->getUploadedFiles();
 
         try {
-            $importacao = $importacaoBusiness->processarImportacao($_FILES["excel"]["tmp_name"], 
-                $arquivos["excel"]->getClientFilename(),
-                $arquivos["excel"]->getClientMediaType());
+            // Processa a importação.
+            if (!array_key_exists("id", $args)) {
+                $importacao = $importacaoBusiness->processarImportacao($_FILES["excel"]["tmp_name"], 
+                    $arquivos["excel"]->getClientFilename(),
+                    $arquivos["excel"]->getClientMediaType(),
+                    $parametros["evento"]);
+            // Salva a importação.
+            } else {
+                $importacao = $importacaoBusiness->salvarImportacao($_FILES["excel"]["tmp_name"], 
+                    $arquivos["excel"]->getClientFilename(),
+                    $arquivos["excel"]->getClientMediaType(),
+                    $parametros["evento"],
+                    json_decode($parametros["colunas"]));
+            }
 
-            $eventoBusiness = EventoBusiness::getInstance($this->db);
-
-            $importacao->setId($parametros["evento"]);
-            $importacao->setEvento($eventoBusiness->recuperar($parametros["evento"]));
-            
             return $response->withJson($importacao);
         } catch (\Exception $e) {
             return $response->withStatus(500)

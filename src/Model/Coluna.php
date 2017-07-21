@@ -10,24 +10,32 @@ namespace Model;
 class Coluna implements \JsonSerializable {
     
     private $id;
+    private $evento;
     private $valor;
     private $indice;
     private $usarnabusca;
     private $usarnaconfirmacao;
     private $inscricao;
+    private $fileiras;
 
-    function __construct($id = NULL, $valor = NULL, $indice = NULL, $usarnabusca = FALSE, 
-            $usarnaconfirmacao = FALSE, $inscricao = FALSE) {
+    function __construct($id = NULL, $evento = NULL, $valor = NULL, $indice = NULL, $usarnabusca = FALSE, 
+            $usarnaconfirmacao = FALSE, $inscricao = FALSE, $fileiras = array()) {
         $this->id = $id;
+        $this->evento = $evento;
         $this->valor = $valor;
         $this->indice = $indice;
         $this->usarnabusca = $usarnabusca;
         $this->usarnaconfirmacao = $usarnaconfirmacao;
         $this->inscricao = $inscricao;
+        $this->fileiras = $fileiras;
     }
     
     function getId() {
         return $this->id;
+    }
+
+    function getEvento() {
+        return $this->evento;
     }
 
     function getValor() {
@@ -50,8 +58,16 @@ class Coluna implements \JsonSerializable {
         return $this->inscricao;
     }
 
+    function getFileiras() {
+        return $this->fileiras;
+    }
+
     function setId($id) {
         $this->id = $id;
+    }
+
+    function setEvento($evento) {
+        $this->evento = $evento;
     }
 
     function setValor($valor) {
@@ -72,6 +88,10 @@ class Coluna implements \JsonSerializable {
 
     function setInscricao($inscricao) {
         $this->inscricao = $inscricao;
+    }
+
+    function setFileiras($fileiras) {
+        $this->fileiras = $fileiras;
     }
 
     public function jsonSerialize() {

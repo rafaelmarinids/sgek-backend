@@ -17,9 +17,13 @@ class Evento implements \JsonSerializable {
     private $planodefundo;
     private $status;
     private $datahora;
+
+    // Flag de importação.
+    private $importacaoRealizada;
     
     function __construct($id = NULL, $titulo = NULL, $logomarca = NULL, $cor = NULL, 
-            $confirmacao = NULL, $planodefundo = NULL, $status = NULL, $datahora = NULL) {
+            $confirmacao = NULL, $planodefundo = NULL, $status = NULL, $datahora = NULL, 
+            $importacaoRealizada = FAlSE) {
         $this->id = $id;
         $this->titulo = $titulo;
         $this->logomarca = $logomarca;
@@ -28,6 +32,7 @@ class Evento implements \JsonSerializable {
         $this->planodefundo = $planodefundo;
         $this->status = $status;
         $this->datahora = $datahora;
+        $this->importacaoRealizada = $importacaoRealizada;
     }
     
     function getId() {
@@ -62,6 +67,10 @@ class Evento implements \JsonSerializable {
         return $this->datahora;
     }
 
+    function getImportacaoRealizada() {
+        return $this->importacaoRealizada;
+    }
+
     function setId($id) {
         $this->id = $id;
     }
@@ -92,6 +101,10 @@ class Evento implements \JsonSerializable {
 
     function setDatahora($datahora) {
         $this->datahora = $datahora;
+    }
+
+    function setImportacaoRealizada($importacaoRealizada) {
+        $this->importacaoRealizada = $importacaoRealizada;
     }
 
     public function jsonSerialize() {

@@ -1,6 +1,6 @@
 {
     "name": "sgek-backend",
-    "description": "",
+    "description": "Aplicação (backend) para gestão de entrega de kits.",
     "authors": [
         {
             "name": "Rafael Marini de Souza",
@@ -16,8 +16,7 @@
         "phpoffice/phpspreadsheet": "dev-develop"
     },
     "scripts": {
-        "start": "php -S 0.0.0.0:8080 -t public public/index.php",
-        "test": "phpunit"
+        "start": "php -S 0.0.0.0:8080 -t public public/index.php"
     }
 
 }

@@ -5,6 +5,9 @@ namespace Business;
 use \Exception\ValidacaoException;
 use \Model\Importacao;
 use \Model\Coluna;
+use \Model\Fileira;
+use \DAO\ImportacaoDAO;
+use \Business\EventoBusiness;
 use \Slim\Http\UploadedFile;
 use \PhpOffice\PhpSpreadsheet\IOFactory;
 use \PhpOffice\PhpSpreadsheet\Cell;
@@ -41,7 +44,7 @@ class ImportacaoBusiness {
      * 
      * @return type
      */
-    public function processarImportacao($excelTempName, $excelFileName, $mimeType) {
+    public function processarImportacao($excelTempName, $excelFileName, $mimeType, $idEvento) {
         if (!$excelTempName) {
             throw new ValidacaoException("arquivo excel");
         }
@@ -72,15 +75,6 @@ class ImportacaoBusiness {
 
         $worksheet = $spreadsheet->getActiveSheet();
 
-        /*foreach ($worksheet->getRowIterator() as $row) {
-            $cellIterator = $row->getCellIterator();
-            $cellIterator->setIterateOnlyExistingCells(FALSE); //This loops through all cells, even if a cell value is not set. By default, only cells that have a value set will be iterated.
-
-            foreach ($cellIterator as $cell) {
-                $cell->getValue();
-            }
-        }*/
-
         $highestRow = $worksheet->getHighestRow();
         $highestColumn = $worksheet->getHighestColumn();
         $highestColumnIndex = Cell::columnIndexFromString($highestColumn);
@@ -103,6 +97,112 @@ class ImportacaoBusiness {
         $importacao->setColunas($colunas);
         $importacao->setQuantidadeDeRegistros($highestRow > 0 ? $highestRow - 1 : 0);
         $importacao->setNomeDoArquivo($excelFileName);
+
+        $eventoBusiness = EventoBusiness::getInstance($this->pdo);
+
+        $evento = $eventoBusiness->recuperar($idEvento);
+
+        $importacao->setId($evento->getId());
+        $importacao->setEvento($evento);
+
+        return $importacao;
+    }
+
+    /**
+     * 
+     * @return type
+     */
+    public function salvarImportacao($excelTempName, $excelFileName, $mimeType, $idEvento = NULL, $colunasObject = NULL) {
+        if (!$excelTempName) {
+            throw new ValidacaoException("arquivo excel");
+        }
+
+        if (!$idEvento) {
+            throw new ValidacaoException("evento");
+        }
+
+        $eventoBusiness = EventoBusiness::getInstance($this->pdo);
+
+        $evento = $eventoBusiness->recuperar($idEvento);
+
+        if (!$evento) {
+            throw new ValidacaoException("O evento informado não foi encontrado.", "%s");
+        }
+
+        if (!$colunasObject || !is_array($colunasObject) || count($colunasObject) == 0) {
+            throw new ValidacaoException("É necessário selecionar ao menos uma coluna para a tela de inscrição, confirmação (caso configurado) e a identificação para inscrição.", "%s");
+        }
+
+        // Valida o tipo de arquivo.
+        $mimeTypesArray = array(
+            "application/vnd.ms-excel", 
+            "application/msexcel", 
+            "application/x-msexcel", 
+            "application/x-ms-excel",
+            "application/x-excel",
+            "application/x-dos_ms_excel",
+            "application/xls",
+            "application/x-xls",
+            "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+            "application/vnd.oasis.opendocument.spreadsheet",
+            "text/csv"
+        ); 
+
+        if (!in_array($mimeType, $mimeTypesArray)) {
+            throw new ValidacaoException("O arquivo contendo as inscrições deve ser XLS, XLSX, ODS ou CSV.", "%s");
+        }
+
+        $reader = IOFactory::createReader("Xlsx");
+        $reader->setReadDataOnly(TRUE);
+
+        $spreadsheet = $reader->load($excelTempName);
+
+        $worksheet = $spreadsheet->getActiveSheet();
+
+        $highestRow = $worksheet->getHighestRow();
+
+        $importacaoDAO = new ImportacaoDAO($this->pdo);
+
+        $colunas = array();
+
+        foreach ($colunasObject as $colunaTemp) {
+            $coluna = new Coluna();
+            $coluna->setEvento($evento);
+            $coluna->setValor($colunaTemp->valor);
+            $coluna->setIndice($colunaTemp->indice);
+            $coluna->setUsarnabusca($colunaTemp->usarnabusca);
+            $coluna->setUsarnaconfirmacao($colunaTemp->usarnaconfirmacao);
+            $coluna->setInscricao($colunaTemp->inscricao);
+
+            $fileiras = array();
+
+            for ($fil = 2; $fil <= $highestRow; ++$fil) {
+                $fileira = new Fileira();
+                $fileira->setValor($worksheet->getCellByColumnAndRow($coluna->getIndice(), $fil)->getValue());
+                $fileira->setIndice($fil);
+
+                $fileiras[] = $fileira;
+            }
+
+            $coluna->setFileiras($fileiras);
+            
+            $colunas[] = $coluna;
+        }
+
+        $importacaoDAO->inserirColunas($colunas);
+
+        $eventoBusiness->salvar($evento->getId(),
+            $evento->getTitulo(),
+            "Ativo",
+            $evento->getCor(),
+            $evento->getConfirmacao());
+
+        $importacao = new Importacao();
+        $importacao->setId($evento->getId());
+        $importacao->setColunas($colunasObject);
+        $importacao->setQuantidadeDeRegistros($highestRow > 0 ? $highestRow - 1 : 0);
+        $importacao->setNomeDoArquivo($excelFileName);
+        $importacao->setEvento($evento);
 
         return $importacao;
     }

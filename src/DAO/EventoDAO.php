@@ -3,7 +3,6 @@
 namespace DAO;
 
 use \Model\Evento;
-use \Slim\Http\UploadedFile;
 
 /**
  * 
@@ -41,6 +40,8 @@ class EventoDAO {
             $evento->setConfirmacao($resultado["confirmacao"] ? TRUE : FALSE);
             $evento->setPlanodefundo($resultado["planodefundo"]);
             $evento->setDatahora(date( 'd/m/Y H:i:s', strtotime($resultado["datahora"])));
+
+            $evento->setImportacaoRealizada($this->contemImportacao($evento->getId()));
             
             return $evento;
         }
@@ -178,5 +179,25 @@ class EventoDAO {
         }
 
         return isset($excluido) && $excluido == 1 ? TRUE : FALSE;
+    }
+
+    /**
+     * 
+     * @return TRUE ou FALSE
+     */
+    public function contemImportacao($id) {        
+        $statement = $this->pdo->prepare('SELECT * FROM evento e INNER JOIN tabelacoluna c ON e.id = c.id_evento WHERE e.id = ?');
+        
+        $statement->execute(array(
+            $id
+        ));
+
+        $resultado = $statement->fetch();
+        
+        if ($resultado) {
+            return TRUE;
+        }
+        
+        return FALSE;
     }
 }
