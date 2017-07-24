@@ -11,6 +11,8 @@ use \Business\EventoBusiness;
 use \Slim\Http\UploadedFile;
 use \PhpOffice\PhpSpreadsheet\IOFactory;
 use \PhpOffice\PhpSpreadsheet\Cell;
+use \PhpOffice\PhpSpreadsheet\Calculation\Functions;
+use \PhpOffice\PhpSpreadsheet\Shared\Date;
 
 /**
  * 
@@ -68,7 +70,8 @@ class ImportacaoBusiness {
             throw new ValidacaoException("O arquivo contendo as inscrições deve ser XLS, XLSX, ODS ou CSV.", "%s");
         }
 
-        $reader = IOFactory::createReader("Xlsx");
+        //$reader = IOFactory::createReader("Xlsx");
+        $reader = IOFactory::createReaderForFile($excelTempName);
         $reader->setReadDataOnly(TRUE);
 
         $spreadsheet = $reader->load($excelTempName);
@@ -152,8 +155,11 @@ class ImportacaoBusiness {
             throw new ValidacaoException("O arquivo contendo as inscrições deve ser XLS, XLSX, ODS ou CSV.", "%s");
         }
 
-        $reader = IOFactory::createReader("Xlsx");
-        $reader->setReadDataOnly(TRUE);
+        //$reader = IOFactory::createReader("Xlsx");
+        $reader = IOFactory::createReaderForFile($excelTempName);
+
+        // Se estiver TRUE o m[etodo isDateTime não funciona.
+        //$reader->setReadDataOnly(TRUE);
 
         $spreadsheet = $reader->load($excelTempName);
 
@@ -178,7 +184,13 @@ class ImportacaoBusiness {
 
             for ($fil = 2; $fil <= $highestRow; ++$fil) {
                 $fileira = new Fileira();
-                $fileira->setValor($worksheet->getCellByColumnAndRow($coluna->getIndice(), $fil)->getValue());
+
+                if (Date::isDateTime($worksheet->getCellByColumnAndRow($coluna->getIndice(), $fil))) {
+                    $fileira->setValor(date('d/m/Y', Date::excelToTimestamp($worksheet->getCellByColumnAndRow($coluna->getIndice(), $fil)->getValue())));
+                } else {
+                    $fileira->setValor($worksheet->getCellByColumnAndRow($coluna->getIndice(), $fil)->getValue());
+                }
+                
                 $fileira->setIndice($fil);
 
                 $fileiras[] = $fileira;
