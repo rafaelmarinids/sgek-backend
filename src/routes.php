@@ -13,6 +13,7 @@
 use \Business\UsuarioBusiness;
 use \Business\EventoBusiness;
 use \Business\ImportacaoBusiness;
+use \Business\InscricaoBusiness;
 
 /*
  * Webservices.
@@ -184,6 +185,40 @@ $app->group('/rs', function () {
                     ->withHeader('Content-Type', 'text/plain')
                     ->write($e->getMessage());
         }
+    });
+
+     /*
+     * Recupera a lista de colunas de um determinado evento.
+     */
+    $this->get('/colunas', function ($request, $response, $args) {
+        $inscricaoBusiness = InscricaoBusiness::getInstance($this->db);
+
+        $parametros = $request->getQueryParams();
+
+        $evento = is_array($parametros) && array_key_exists("evento", $parametros) ? filter_var($parametros["evento"], FILTER_SANITIZE_STRING) : NULL;
+        $usarnabusca = is_array($parametros) && array_key_exists("usarnabusca", $parametros) ? filter_var($parametros["usarnabusca"], FILTER_SANITIZE_STRING) : NULL;
+        $usarnaconfirmacao = is_array($parametros) && array_key_exists("usarnaconfirmacao", $parametros) ? filter_var($parametros["usarnaconfirmacao"], FILTER_SANITIZE_STRING) : NULL;
+
+        $colunas = $inscricaoBusiness->listarColunas($evento, $usarnabusca, $usarnaconfirmacao);
+        
+        return $response->withJson($colunas);
+    });
+
+    /*
+     * Recupera a lista de inscrições de um determinado evento.
+     */
+    $this->get('/inscricoes', function ($request, $response, $args) {
+        $inscricaoBusiness = InscricaoBusiness::getInstance($this->db);
+
+        $parametros = $request->getQueryParams();
+
+        $evento = is_array($parametros) && array_key_exists("evento", $parametros) ? filter_var($parametros["evento"], FILTER_SANITIZE_STRING) : NULL;
+
+        unset($parametros["evento"]);
+
+        $inscricoes = $inscricaoBusiness->listar($evento, $parametros);
+        
+        return $response->withJson($inscricoes);
     });
 })->add($validacaoRenovacaoMiddleware)->add($jwtAuthenticationMiddleware);
 
