@@ -14,6 +14,7 @@ use \Business\UsuarioBusiness;
 use \Business\EventoBusiness;
 use \Business\ImportacaoBusiness;
 use \Business\InscricaoBusiness;
+use \Util\TokenHelper;
 
 /*
  * Webservices.
@@ -219,6 +220,31 @@ $app->group('/rs', function () {
         $inscricoes = $inscricaoBusiness->listar($evento, $parametros);
         
         return $response->withJson($inscricoes);
+    });
+
+    /*
+     * Confirma a retirada de kit para uma inscrição.
+     */
+    $this->put('/inscricoes/{id}', function ($request, $response, $args) {
+        $token = str_replace("Bearer ", "", $request->getHeader("Authorization")[0]);
+
+        $usuario = TokenHelper::recuperarUsuario($token);
+
+        $inscricaoBusiness = InscricaoBusiness::getInstance($this->db);
+
+        $parametros = $request->getParsedBody();
+
+        try {
+            $inscricao = $inscricaoBusiness->retirarKit((int) $args["id"],
+                (object) $parametros['retirada'],
+                $usuario->id);
+            
+            return $response->withJson($inscricao);
+        } catch (\Exception $e) {
+            return $response->withStatus(500)
+                    ->withHeader('Content-Type', 'text/plain')
+                    ->write($e->getMessage());
+        }
     });
 })->add($validacaoRenovacaoMiddleware)->add($jwtAuthenticationMiddleware);
 

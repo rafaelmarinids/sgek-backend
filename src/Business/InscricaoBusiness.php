@@ -38,7 +38,7 @@ class InscricaoBusiness {
      * 
      * @return type
      */
-    public function listar($idEvento = NULL, $filtros = NULL) {        
+    public function listar($idEvento = NULL, $filtros = NULL) {
         $inscricaoDAO = new InscricaoDAO($this->pdo);
         
         return $inscricaoDAO->listar($idEvento, $filtros);
@@ -52,6 +52,30 @@ class InscricaoBusiness {
         $colunaDAO = new ColunaDAO($this->pdo);
         
         return $colunaDAO->listar($idEvento, $usarnabusca, $usarnaconfirmacao);
+    }
+
+    /**
+     * 
+     * @return type
+     */
+    public function retirarKit($idTabelaFileira = NULL, $retirada = NULL, $idUsuario = NULL) {
+        if (!$idTabelaFileira) {
+            throw new ValidacaoException("idTabelaFileira");
+        }
+
+        if (!$retirada || !is_object($retirada)) {
+            throw new ValidacaoException("retirada");
+        }
+
+        if (!$idUsuario) {
+            throw new ValidacaoException("idUsuario");
+        }
+
+        $inscricaoDAO = new InscricaoDAO($this->pdo);
+
+        $idRetirada = $inscricaoDAO->salvarRetirada($idTabelaFileira, $retirada, $idUsuario);
+        
+        return $inscricaoDAO->recuperarPorIdRetirada($idRetirada);
     }
 
 }

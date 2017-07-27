@@ -6,6 +6,8 @@ use \Model\Inscricao;
 use \Model\Coluna;
 use \Model\Fileira;
 use \Model\ColunaFileira;
+use \Model\Retirada;
+use \Model\Terceiro;
 
 /**
  * 
@@ -18,6 +20,75 @@ class InscricaoDAO {
 
     public function __construct($pdo) {
         $this->pdo = $pdo;
+    }
+
+    /**
+     * 
+     * @return 
+     */
+    public function recuperarPorIdRetirada($idRetirada = NULL) {
+        $statement = $this->pdo->prepare("SELECT c.id_evento, f.indice FROM (tabelacoluna c INNER JOIN tabelafileira f ON c.id = f.id_tabelacoluna) INNER JOIN retirada r ON r.id_tabelafileira = f.id WHERE r.id = ?");
+
+        $statement->execute(array(
+            $idRetirada
+        ));
+
+        $resultadoParametros = $statement->fetch();
+        
+        if ($resultadoParametros) {
+            $statementInscricao = $this->pdo->prepare("SELECT * FROM inscricao_view i WHERE i.id_evento = ? AND i.indice_valor = ?");
+
+            $statementInscricao->execute(array(
+                $resultadoParametros["id_evento"],
+                $resultadoParametros["indice"]
+            ));
+
+            $indiceAtual = NULL;
+    
+            while ($resultado = $statementInscricao->fetch()) {
+                if ($indiceAtual != $resultado["indice_valor"]) {
+                    $indiceAtual = $resultado["indice_valor"];
+
+                    $inscricao = new Inscricao();
+                }
+                            
+                $coluna = new Coluna();
+                $coluna->setId($resultado["id_coluna"]);
+                $coluna->setValor($resultado["coluna"]);
+                $coluna->setIndice($resultado["indice_coluna"]);
+
+                $fileira = new Fileira();
+                $fileira->setId($resultado["id_valor"]);
+                $fileira->setValor($resultado["valor"]);
+                $fileira->setIndice($resultado["indice_valor"]);
+
+                $colunaFileira = new ColunaFileira($coluna, $fileira);
+
+                if ($resultado["usarnabusca"] == 1) {
+                    $arrayColunasFileirasBusca = $inscricao->getColunasFileirasBusca();
+
+                    $arrayColunasFileirasBusca[] = $colunaFileira;
+
+                    $inscricao->setColunasFileirasBusca($arrayColunasFileirasBusca);
+                } else if ($resultado["usarnaconfirmacao"] == 1) {
+                    $arrayColunasFileirasConfirmacao = $inscricao->getColunasFileirasConfirmacao();
+
+                    $arrayColunasFileirasConfirmacao[] = $colunaFileira;
+
+                    $inscricao->setColunasFileirasConfirmacao($arrayColunasFileirasConfirmacao);
+                }
+
+                if ($resultado["inscricao"] == 1) {
+                    $inscricao->setId($resultado["id_valor"]);
+
+                    $inscricao->setRetirada($this->recuperarRetirada($resultado["id_valor"]));
+                }
+            }
+
+            return $inscricao;
+        }
+
+        return NULL;
     }
     
     /**
@@ -43,8 +114,6 @@ class InscricaoDAO {
                 PREPARE stmt FROM @sql;
                 EXECUTE stmt;
                 DEALLOCATE PREPARE stmt;');*/
-
-        /*SELECT i2.indice_valor FROM inscricao_view i2 WHERE (i2.indice_coluna = 2 AND i2.valor LIKE '%o%') OR (i2.indice_coluna = 6 AND i2.valor LIKE '%f%') AND i2.id_evento = 26 GROUP BY i2.indice_valor*/
 
         $sql = "SELECT * FROM inscricao_view i WHERE i.id_evento = $idEvento";
 
@@ -77,7 +146,6 @@ class InscricaoDAO {
                 $indiceAtual = $resultado["indice_valor"];
 
                 $inscricao = new Inscricao();
-                $inscricao->setId($resultado["indice_valor"]);
 
                 $inscricoes[] = $inscricao;
             }
@@ -106,10 +174,124 @@ class InscricaoDAO {
                 $arrayColunasFileirasConfirmacao[] = $colunaFileira;
 
                 $inscricao->setColunasFileirasConfirmacao($arrayColunasFileirasConfirmacao);
-            } 
+            }
+
+            if ($resultado["inscricao"] == 1) {
+                $inscricao->setId($resultado["id_valor"]);
+
+                $inscricao->setRetirada($this->recuperarRetirada($resultado["id_valor"]));
+            }
         }
         
         return $inscricoes;
+    }
+
+    /**
+     * 
+     * @return 
+     */
+    public function recuperarRetirada($idTabelafileira = NULL) {
+        $statement = $this->pdo->prepare('SELECT * FROM retirada r WHERE r.id_tabelafileira = ?');
+        
+        $statement->execute(array(
+            $idTabelafileira
+        ));
+
+        $resultado = $statement->fetch();
+        
+        if ($resultado) {
+            $retirada = new Retirada();
+            $retirada->setId((int) $resultado["id"]);
+            $retirada->setRetirado($resultado["retirado"] ? TRUE : FALSE);
+
+            $retirada->setTerceiro($this->recuperarTerceiro($resultado["id_terceiro"]));
+
+            $usuarioDAO = new UsuarioDAO($this->pdo);
+
+            $retirada->setUsuarioInsercao($usuarioDAO->recuperarPorId($resultado["id_usuarioinsercao"]));
+
+            $retirada->setDataHoraInsercao(date( 'd/m/Y H:i:s', strtotime($resultado["datahorainsercao"])));
+
+            $retirada->setUsuarioAlteracao($usuarioDAO->recuperarPorId($resultado["id_usuarioatualizacao"]));
+
+            $retirada->setDataHoraAlteracao(date( 'd/m/Y H:i:s', strtotime($resultado["datahoraatualizacao"])));
+            
+            return $retirada;
+        }
+        
+        return new Retirada();
+    }
+
+    /**
+     * 
+     * @return 
+     */
+    public function recuperarTerceiro($idTerceiro = NULL) {
+        $statement = $this->pdo->prepare('SELECT * FROM terceiro t WHERE t.id = ?');
+        
+        $statement->execute(array(
+            $idTerceiro
+        ));
+
+        $resultado = $statement->fetch();
+        
+        if ($resultado) {
+            $terceiro = new Terceiro();
+            $terceiro->setId((int) $resultado["id"]);
+            $terceiro->setNome($resultado["nome"]);
+            $terceiro->setTelefone($resultado["telefone"]);
+            $terceiro->setDocumento($resultado["documento"]);
+            $terceiro->setEndereco($resultado["endereco"]);
+
+            return $terceiro;
+        }
+        
+        return new Terceiro();
+    }
+
+    /**
+     * 
+     * @return Coluna
+     */
+    public function salvarRetirada($idTabelaFileira = NULL, $retirada = NULL, $idUsuario = NULL) {
+        $idRetirada = NULL;
+
+        try {
+            $this->pdo->beginTransaction();
+
+            if ($retirada->terceiro && $retirada->terceiro->nome) {
+                $preparedStatementTerceiro = $this->pdo->prepare('INSERT INTO terceiro (nome, documento, telefone, endereco) VALUES (?, ?, ?, ?)');
+
+                $preparedStatementTerceiro->execute(array(
+                    $retirada->terceiro->nome,
+                    !empty($retirada->terceiro->documento) ? $retirada->terceiro->documento : NULL,
+                    !empty($retirada->terceiro->telefone) ? $retirada->terceiro->telefone : NULL,
+                    !empty($retirada->terceiro->endereco) ? $retirada->terceiro->endereco : NULL                 
+                ));
+
+                $idTerceiro = $this->pdo->lastInsertId();
+            } else {
+                $idTerceiro = NULL;
+            }           
+
+            $preparedStatementColuna = $this->pdo->prepare('INSERT INTO retirada (id_tabelafileira, retirado, id_terceiro, id_usuarioinsercao, datahorainsercao, id_usuarioatualizacao, datahoraatualizacao) VALUES (?, ?, ?, ?, NOW(), ?, NOW())');
+            
+            $preparedStatementColuna->execute(array(
+                $idTabelaFileira,
+                $retirada->retirado,
+                $idTerceiro,
+                $idUsuario,
+                $idUsuario
+            ));
+
+            $idRetirada = $this->pdo->lastInsertId();
+
+            $this->pdo->commit();
+        } catch(PDOException $e) {
+            $this->pdo->rollBack();
+        }
+
+        return $idRetirada;
     }
 
 }
