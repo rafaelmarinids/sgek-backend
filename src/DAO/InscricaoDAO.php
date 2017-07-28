@@ -80,7 +80,7 @@ class InscricaoDAO {
 
                 if ($resultado["inscricao"] == 1) {
                     $inscricao->setId($resultado["id_valor"]);
-
+                    $inscricao->setInscricao($resultado["valor"]);
                     $inscricao->setRetirada($this->recuperarRetirada($resultado["id_valor"]));
                 }
             }
@@ -178,7 +178,7 @@ class InscricaoDAO {
 
             if ($resultado["inscricao"] == 1) {
                 $inscricao->setId($resultado["id_valor"]);
-
+                $inscricao->setInscricao($resultado["valor"]);
                 $inscricao->setRetirada($this->recuperarRetirada($resultado["id_valor"]));
             }
         }

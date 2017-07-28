@@ -12,12 +12,14 @@ use \Model\Retirada;
 class Inscricao implements \JsonSerializable {
     
     private $id;
+    private $inscricao;
     private $colunasFileirasBusca;
     private $colunasFileirasConfirmacao;
     private $retirada;
 
-    function __construct($id = NULL, $colunasFileirasBusca = array(), $colunasFileirasConfirmacao = array(), Retirada $retirada = NULL) {
+    function __construct($id = NULL, $inscricao = NULL, $colunasFileirasBusca = array(), $colunasFileirasConfirmacao = array(), Retirada $retirada = NULL) {
         $this->id = $id;
+        $this->inscricao = $inscricao;
         $this->colunasFileirasBusca = $colunasFileirasBusca;
         $this->colunasFileirasConfirmacao = $colunasFileirasConfirmacao;
         $this->retirada = $retirada;
@@ -25,6 +27,10 @@ class Inscricao implements \JsonSerializable {
     
     function getId() {
         return $this->id;
+    }
+
+    function getInscricao() {
+        return $this->inscricao;
     }
 
     function getColunasFileirasBusca() {
@@ -41,6 +47,10 @@ class Inscricao implements \JsonSerializable {
 
     function setId($id) {
         $this->id = $id;
+    }
+
+    function setInscricao($inscricao) {
+        $this->inscricao = $inscricao;
     }
 
     function setColunasFileirasBusca($colunasFileirasBusca) {
