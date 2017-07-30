@@ -168,7 +168,9 @@ class InscricaoDAO {
                 $arrayColunasFileirasBusca[] = $colunaFileira;
 
                 $inscricao->setColunasFileirasBusca($arrayColunasFileirasBusca);
-            } else if ($resultado["usarnaconfirmacao"] == 1) {
+            }
+            
+            if ($resultado["usarnaconfirmacao"] == 1) {
                 $arrayColunasFileirasConfirmacao = $inscricao->getColunasFileirasConfirmacao();
 
                 $arrayColunasFileirasConfirmacao[] = $colunaFileira;
