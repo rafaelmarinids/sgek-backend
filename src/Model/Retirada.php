@@ -21,9 +21,11 @@ class Retirada implements \JsonSerializable {
     private $dataHoraInsercao;
     private $usuarioAlteracao;
     private $dataHoraAlteracao;
+    private $ocorrencia;
 
     function __construct($id = NULL, Fileira $fileira = NULL, $retirado = NULL, Terceiro $terceiro = NULL, 
-        Usuario $usuarioInsercao = NULL, $dataHoraInsercao = NULL, Usuario $usuarioAlteracao = NULL, $dataHoraAlteracao = NULL) {
+        Usuario $usuarioInsercao = NULL, $dataHoraInsercao = NULL, Usuario $usuarioAlteracao = NULL, $dataHoraAlteracao = NULL, 
+        $ocorrencia = NULL) {
         $this->id = $id;
         $this->fileira = $fileira;
         $this->retirado = $retirado;
@@ -32,6 +34,7 @@ class Retirada implements \JsonSerializable {
         $this->dataHoraInsercao = $dataHoraInsercao;
         $this->usuarioAlteracao = $usuarioAlteracao;
         $this->dataHoraAlteracao = $dataHoraAlteracao;
+        $this->ocorrencia = $ocorrencia;
     }
     
     function getId() {
@@ -66,6 +69,10 @@ class Retirada implements \JsonSerializable {
         return $this->dataHoraAlteracao;
     }
 
+    function getOcorrencia() {
+        return $this->ocorrencia;
+    }
+
     function setId($id) {
         $this->id = $id;
     }
@@ -96,6 +103,10 @@ class Retirada implements \JsonSerializable {
 
     function setDataHoraAlteracao($dataHoraAlteracao) {
         $this->dataHoraAlteracao = $dataHoraAlteracao;
+    }
+
+    function setOcorrencia($ocorrencia) {
+        $this->ocorrencia = $ocorrencia;
     }
 
     public function jsonSerialize() {

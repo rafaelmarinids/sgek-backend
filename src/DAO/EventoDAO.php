@@ -40,6 +40,8 @@ class EventoDAO {
             $evento->setConfirmacao($resultado["confirmacao"] ? TRUE : FALSE);
             $evento->setPlanodefundo($resultado["planodefundo"]);
             $evento->setDatahora(date( 'd/m/Y H:i:s', strtotime($resultado["datahora"])));
+            $evento->setMensageminicial($resultado["mensageminicial"]);
+            $evento->setMensagemfinal($resultado["mensagemfinal"]);
 
             $evento->setImportacaoRealizada($this->contemImportacao($evento->getId()));
             
@@ -74,6 +76,8 @@ class EventoDAO {
             $evento->setConfirmacao($resultado["confirmacao"] ? TRUE : FALSE);
             $evento->setPlanodefundo($resultado["planodefundo"]);
             $evento->setDatahora(date( 'd/m/Y H:i:s', strtotime($resultado["datahora"])));
+            $evento->setMensageminicial($resultado["mensageminicial"]);
+            $evento->setMensagemfinal($resultado["mensagemfinal"]);
             
             $eventos[] = $evento;
         }
@@ -86,11 +90,11 @@ class EventoDAO {
      * @return Evento
      */
     public function inserir($titulo, $status = NULL, $cor = NULL, $confirmacao = NULL, 
-        $nomeArquivoLogomarca = NULL, $nomeArquivoPlanodefundo = NULL) {
+        $nomeArquivoLogomarca = NULL, $nomeArquivoPlanodefundo = NULL, $mensageminicial = NULL, $mensagemfinal = NULL) {
         try {
             $this->pdo->beginTransaction();
 
-            $preparedStatement = $this->pdo->prepare('INSERT INTO evento (titulo, logomarca, cor, confirmacao, planodefundo, status, datahora) VALUES (?, ?, ?, ?, ?, ?, NOW())');
+            $preparedStatement = $this->pdo->prepare('INSERT INTO evento (titulo, logomarca, cor, confirmacao, planodefundo, status, datahora, mensageminicial, mensagemfinal) VALUES (?, ?, ?, ?, ?, ?, NOW(), ?, ?)');
 
             $preparedStatement->execute(array(
                 $titulo,
@@ -98,7 +102,9 @@ class EventoDAO {
                 $cor,
                 $confirmacao,
                 $nomeArquivoPlanodefundo,
-                $status
+                $status,
+                $mensageminicial,
+                $mensagemfinal
             ));
 
             $this->pdo->commit();
@@ -114,7 +120,7 @@ class EventoDAO {
      * @return Evento
      */
     public function editar($id, $titulo, $status = NULL, $cor = NULL, $confirmacao = NULL, 
-        $nomeArquivoLogomarca = NULL, $nomeArquivoPlanodefundo = NULL) {
+        $nomeArquivoLogomarca = NULL, $nomeArquivoPlanodefundo = NULL, $mensageminicial = NULL, $mensagemfinal = NULL) {
         try {
             $this->pdo->beginTransaction();
 
@@ -128,7 +134,7 @@ class EventoDAO {
                 $sql .= ", planodefundo = ?";
             }
 
-            $sql .= ", cor = ?, confirmacao = ?, status = ? WHERE e.id = ?";
+            $sql .= ", cor = ?, confirmacao = ?, status = ?, mensageminicial = ?, mensagemfinal = ? WHERE e.id = ?";
 
             $preparedStatement = $this->pdo->prepare($sql);
 
@@ -147,6 +153,8 @@ class EventoDAO {
             $parametros[] = $cor;
             $parametros[] = $confirmacao;
             $parametros[] = $status;
+            $parametros[] = $mensageminicial;
+            $parametros[] = $mensagemfinal;
             $parametros[] = $id;
 
             $editado = $preparedStatement->execute($parametros);

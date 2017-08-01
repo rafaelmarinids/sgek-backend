@@ -66,7 +66,7 @@ class EventoBusiness {
      * @return type
      */
     public function salvar($id, $titulo, $status = NULL, $cor = NULL, $confirmacao = NULL, 
-        UploadedFile $logomarca = NULL, UploadedFile $planodefundo = NULL) {
+        UploadedFile $logomarca = NULL, UploadedFile $planodefundo = NULL, $mensageminicial = NULL, $mensagemfinal = NULL) {
         if (!$titulo) {
             throw new ValidacaoException("título");
         }
@@ -102,7 +102,8 @@ class EventoBusiness {
         $confirmacao = $confirmacao == "true" ? TRUE : FALSE;
 
         if (!$id) { // INSERIR
-            $id = $eventoDAO->inserir($titulo, $status, $cor, $confirmacao, $nomeArquivoLogomarca, $nomeArquivoPlanodefundo);
+            $id = $eventoDAO->inserir($titulo, $status, $cor, $confirmacao, $nomeArquivoLogomarca, $nomeArquivoPlanodefundo, 
+                $mensageminicial, $mensagemfinal);
 
             if ($logomarca) {
                 $this->_moveUploadedFile($logomarca, $nomeArquivoLogomarca);
@@ -119,7 +120,8 @@ class EventoBusiness {
                     $status = "Ativo";
                 }
 
-                $editado = $eventoDAO->editar($id, $titulo, $status, $cor, $confirmacao, $nomeArquivoLogomarca, $nomeArquivoPlanodefundo);
+                $editado = $eventoDAO->editar($id, $titulo, $status, $cor, $confirmacao, $nomeArquivoLogomarca, $nomeArquivoPlanodefundo,
+                    $mensageminicial, $mensagemfinal);
 
                 if ($editado) {
                     if ($logomarca) {
@@ -224,11 +226,11 @@ class EventoBusiness {
 
         // Valida dimensão máxima 1027x768.
         //list($width, $height, $type, $attr) = getimagesize($uploadedFile->getFilePath());
-        list($width, $height, $type, $attr) = getimagesize($_FILES["planodefundo"]["tmp_name"]);
+        //list($width, $height, $type, $attr) = getimagesize($_FILES["planodefundo"]["tmp_name"]);
 
-        if ($width && $height && ($width > 1024 || $height > 768)) {
-            throw new ValidacaoException("A imagem da logomarca deve estar nas dimensões 1024x768 pixels.", "%s");
-        }
+        //if ($width && $height && ($width > 1024 || $height > 768)) {
+        //    throw new ValidacaoException("A imagem da logomarca deve estar nas dimensões 1024x768 pixels.", "%s");
+        //}
     }
 
     /**

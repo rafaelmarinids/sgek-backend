@@ -95,7 +95,7 @@ class InscricaoDAO {
      * 
      * @return 
      */
-    public function listar($idEvento = NULL, $filtros = NULL) {
+    public function listar($idEvento = NULL, $filtros = NULL, $quantidadeRegistros = 25, $pagina = 1, $quantidadeColunas = 0) {
         // Tabela pivô.      
         /*$statement = $this->pdo->prepare('SET @@group_concat_max_len = 5000;
                 SET @sql = NULL;
@@ -136,6 +136,12 @@ class InscricaoDAO {
 
             $sql .= $in;
         }
+
+        $quantidadeRegistros = $quantidadeRegistros * $quantidadeColunas;
+
+        $registroInicial = ($pagina - 1) * $quantidadeRegistros;
+
+        $sql .= " LIMIT $registroInicial, $quantidadeRegistros";
         
         $inscricoes = array();
 
@@ -211,12 +217,10 @@ class InscricaoDAO {
             $usuarioDAO = new UsuarioDAO($this->pdo);
 
             $retirada->setUsuarioInsercao($usuarioDAO->recuperarPorId($resultado["id_usuarioinsercao"]));
-
             $retirada->setDataHoraInsercao(date( 'd/m/Y H:i:s', strtotime($resultado["datahorainsercao"])));
-
             $retirada->setUsuarioAlteracao($usuarioDAO->recuperarPorId($resultado["id_usuarioatualizacao"]));
-
             $retirada->setDataHoraAlteracao(date( 'd/m/Y H:i:s', strtotime($resultado["datahoraatualizacao"])));
+            $retirada->setOcorrencia($resultado["ocorrencia"]);
             
             return $retirada;
         }
@@ -276,14 +280,15 @@ class InscricaoDAO {
                 $idTerceiro = NULL;
             }           
 
-            $preparedStatementColuna = $this->pdo->prepare('INSERT INTO retirada (id_tabelafileira, retirado, id_terceiro, id_usuarioinsercao, datahorainsercao, id_usuarioatualizacao, datahoraatualizacao) VALUES (?, ?, ?, ?, NOW(), ?, NOW())');
+            $preparedStatementColuna = $this->pdo->prepare('INSERT INTO retirada (id_tabelafileira, retirado, id_terceiro, id_usuarioinsercao, datahorainsercao, id_usuarioatualizacao, datahoraatualizacao, ocorrencia) VALUES (?, ?, ?, ?, NOW(), ?, NOW(), ?)');
             
             $preparedStatementColuna->execute(array(
                 $idTabelaFileira,
                 $retirada->retirado,
                 $idTerceiro,
                 $idUsuario,
-                $idUsuario
+                $idUsuario,
+                $retirada->ocorrencia
             ));
 
             $idRetirada = $this->pdo->lastInsertId();

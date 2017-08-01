@@ -38,10 +38,22 @@ class InscricaoBusiness {
      * 
      * @return type
      */
-    public function listar($idEvento = NULL, $filtros = NULL) {
+    public function listar($idEvento = NULL, $filtros = NULL, $quantidadeRegistros = 25, $pagina = 1) {
+        if (!$quantidadeRegistros) {
+            $quantidadeRegistros = 25;
+        }
+
+        if (!$pagina) {
+            $pagina = 1;
+        }
+
+        $colunaDAO = new ColunaDAO($this->pdo);
+        
+        $quantidadeColunas = $colunaDAO->contar($idEvento);
+
         $inscricaoDAO = new InscricaoDAO($this->pdo);
         
-        return $inscricaoDAO->listar($idEvento, $filtros);
+        return $inscricaoDAO->listar($idEvento, $filtros, $quantidadeRegistros, $pagina, $quantidadeColunas);
     }
 
     /**

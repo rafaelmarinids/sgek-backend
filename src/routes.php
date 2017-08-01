@@ -94,7 +94,9 @@ $app->group('/rs', function () {
                 filter_var($parametros['cor'], FILTER_SANITIZE_STRING),
                 filter_var($parametros['confirmacao'], FILTER_SANITIZE_STRING),
                 $arquivos && count($arquivos) && array_key_exists("logomarca", $arquivos) ? $arquivos["logomarca"] : NULL,
-                $arquivos && count($arquivos) && array_key_exists("planodefundo", $arquivos) ? $arquivos["planodefundo"] : NULL);
+                $arquivos && count($arquivos) && array_key_exists("planodefundo", $arquivos) ? $arquivos["planodefundo"] : NULL,
+                filter_var($parametros['mensageminicial'], FILTER_SANITIZE_STRING),
+                filter_var($parametros['mensagemfinal'], FILTER_SANITIZE_STRING));
             
             return $response->withJson($evento);
         } catch (\Exception $e) {
@@ -123,7 +125,9 @@ $app->group('/rs', function () {
                 filter_var($parametros['cor'], FILTER_SANITIZE_STRING),
                 filter_var($parametros['confirmacao'], FILTER_SANITIZE_STRING),
                 $arquivos && count($arquivos) && array_key_exists("logomarca", $arquivos) ? $arquivos["logomarca"] : NULL,
-                $arquivos && count($arquivos) && array_key_exists("planodefundo", $arquivos) ? $arquivos["planodefundo"] : NULL);
+                $arquivos && count($arquivos) && array_key_exists("planodefundo", $arquivos) ? $arquivos["planodefundo"] : NULL,
+                filter_var($parametros['mensageminicial'], FILTER_SANITIZE_STRING),
+                filter_var($parametros['mensagemfinal'], FILTER_SANITIZE_STRING));
             
             return $response->withJson($evento);
         } catch (\Exception $e) {
@@ -214,10 +218,14 @@ $app->group('/rs', function () {
         $parametros = $request->getQueryParams();
 
         $evento = is_array($parametros) && array_key_exists("evento", $parametros) ? filter_var($parametros["evento"], FILTER_SANITIZE_STRING) : NULL;
+        $quantidadeRegistros = is_array($parametros) && array_key_exists("quantidadeRegistros", $parametros) ? filter_var($parametros["quantidadeRegistros"], FILTER_SANITIZE_STRING) : NULL;
+        $pagina = is_array($parametros) && array_key_exists("pagina", $parametros) ? filter_var($parametros["pagina"], FILTER_SANITIZE_STRING) : NULL;
 
         unset($parametros["evento"]);
+        unset($parametros["quantidadeRegistros"]);
+        unset($parametros["pagina"]);
 
-        $inscricoes = $inscricaoBusiness->listar($evento, $parametros);
+        $inscricoes = $inscricaoBusiness->listar($evento, $parametros, $quantidadeRegistros, $pagina);
         
         return $response->withJson($inscricoes);
     });

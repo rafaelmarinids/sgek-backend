@@ -51,4 +51,24 @@ class ColunaDAO {
         return $colunas;
     }
 
+    /**
+     * 
+     * @return 
+     */
+    public function contar($idEvento = NULL) {
+        $sql = "SELECT COUNT(1) AS quantidade FROM tabelacoluna c WHERE c.id_evento = $idEvento";
+
+        $statement = $this->pdo->prepare($sql);
+        
+        $statement->execute();
+
+        $resultado = $statement->fetch();
+        
+        if ($resultado) {
+            return (int) $resultado["quantidade"];
+        }
+        
+        return FALSE;
+    }
+
 }
