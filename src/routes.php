@@ -244,6 +244,7 @@ $app->group('/rs', function () {
 
         try {
             $inscricao = $inscricaoBusiness->retirarKit((int) $args["id"],
+                $parametros['colunasFileirasConfirmacao'],
                 (object) $parametros['retirada'],
                 $usuario->id);
             

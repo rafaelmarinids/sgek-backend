@@ -70,7 +70,7 @@ class InscricaoBusiness {
      * 
      * @return type
      */
-    public function retirarKit($idTabelaFileira = NULL, $retirada = NULL, $idUsuario = NULL) {
+    public function retirarKit($idTabelaFileira = NULL, $colunasFileirasConfirmacao = NULL, $retirada = NULL, $idUsuario = NULL) {
         if (!$idTabelaFileira) {
             throw new ValidacaoException("idTabelaFileira");
         }
@@ -107,7 +107,7 @@ class InscricaoBusiness {
 
         $inscricaoDAO = new InscricaoDAO($this->pdo);
 
-        $idRetirada = $inscricaoDAO->salvarRetirada($idTabelaFileira, $retirada, $idUsuario);
+        $idRetirada = $inscricaoDAO->salvarRetirada($idTabelaFileira, $colunasFileirasConfirmacao, $retirada, $idUsuario);
         
         return $inscricaoDAO->recuperarPorIdRetirada($idRetirada);
     }

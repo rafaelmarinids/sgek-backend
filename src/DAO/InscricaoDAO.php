@@ -259,11 +259,20 @@ class InscricaoDAO {
      * 
      * @return Coluna
      */
-    public function salvarRetirada($idTabelaFileira = NULL, $retirada = NULL, $idUsuario = NULL) {
+    public function salvarRetirada($idTabelaFileira = NULL, $colunasFileirasConfirmacao = NULL, $retirada = NULL, $idUsuario = NULL) {
         $idRetirada = NULL;
 
         try {
             $this->pdo->beginTransaction();
+
+            $preparedStatementFileira = $this->pdo->prepare('UPDATE tabelafileira f SET valor = ? WHERE f.id = ?');
+
+            foreach ($colunasFileirasConfirmacao as $colunaFileira) {
+                $preparedStatementFileira->execute(array(
+                    $colunaFileira["fileira"]["valor"],
+                    $colunaFileira["fileira"]["id"]
+                ));
+            }
 
             if ($retirada->terceiro && $retirada->terceiro->nome) {
                 $preparedStatementTerceiro = $this->pdo->prepare('INSERT INTO terceiro (nome, documento, telefone, endereco) VALUES (?, ?, ?, ?)');
