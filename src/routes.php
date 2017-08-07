@@ -269,9 +269,9 @@ $app->get('/eventos/imagens/{nome}', function ($request, $response, $args) {
 /*
  * Formulário de teste para login.
  */
-$app->get('/login', function ($request, $response, $args) {
+/*$app->get('/login', function ($request, $response, $args) {
     return $this->renderer->render($response, 'login.phtml', $args);
-});
+});*/
 
 /*
  * Hash de senha.
