@@ -35,6 +35,7 @@ class UsuarioDAO {
             $usuario->setId($resultado['id']);
             $usuario->setNome($resultado['nome']);
             $usuario->setEmail($resultado['email']);
+            $usuario->setTipo($resultado['tipo']);
             
             return $usuario;
         }
@@ -62,6 +63,7 @@ class UsuarioDAO {
             $usuario->setNome($resultado['nome']);
             $usuario->setEmail($resultado['email']);
             $usuario->setSenha($resultado['senha']);
+            $usuario->setTipo($resultado['tipo']);
             
             return $usuario;
         }

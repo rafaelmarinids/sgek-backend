@@ -63,6 +63,7 @@ class UsuarioBusiness {
                 $sessao->setToken(TokenHelper::gerarToken($usuario));
                 $sessao->setNomeUsuario($usuario->getNome());
                 $sessao->setUrlFotoUsuario("");
+                $sessao->setTipoUsuario($usuario->getTipo());
                 $sessao->setAutenticado(TRUE);
                 $sessao->setMensagem("Usuário autenticado com sucesso!");
 

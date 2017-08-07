@@ -25,8 +25,8 @@ class TokenHelper {
             'iat'  => $agora,                                                   // Issued at: time when the token was generated
             'jti'  => base64_encode(mcrypt_create_iv(32)),                      // Json Token Id: an unique identifier for the token
             'iss'  => "SGEK",                                                   // Issuer: pode ser o domínio posteriormente
-            //'nbf'  => $agora + 10,                                              // Not before: daqui à 10 segundos
-            'exp'  => $agora + (60 * 60),                                       // Expire: daqui à 1 hora
+            //'nbf'  => $agora + 10,                                            // Not before: daqui à 10 segundos
+            'exp'  => $agora + ((60 * 60) * 12),                                // Expire: daqui à 12 horas
             'data' => self::criptografarUsuario($usuario)                       // Data related to the signer user
         ];
         

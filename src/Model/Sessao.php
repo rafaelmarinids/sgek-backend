@@ -10,8 +10,10 @@ namespace Model;
 class Sessao implements \JsonSerializable {
     
     private $token;
+    private $idUsuario;
     private $nomeUsuario;
     private $urlFotoUsuario;
+    private $tipoUsuario;
     private $autenticado;
     private $mensagem;
     
@@ -22,12 +24,20 @@ class Sessao implements \JsonSerializable {
         return $this->token;
     }
 
+    public function getIdUsuario() {
+        return $this->idUsuario;
+    }
+
     public function getNomeUsuario() {
         return $this->nomeUsuario;
     }
 
     public function getUrlFotoUsuario() {
         return $this->urlFotoUsuario;
+    }
+
+    public function getTipoUsuario() {
+        return $this->tipoUsuario;
     }
 
     public function getAutenticado() {
@@ -42,12 +52,20 @@ class Sessao implements \JsonSerializable {
         $this->token = $token;
     }
 
+    public function setIdUsuario($idUsuario) {
+        $this->idUsuario = $idUsuario;
+    }
+
     public function setNomeUsuario($nomeUsuario) {
         $this->nomeUsuario = $nomeUsuario;
     }
 
     public function setUrlFotoUsuario($urlFotoUsuario) {
         $this->urlFotoUsuario = $urlFotoUsuario;
+    }
+
+    public function setTipoUsuario($tipoUsuario) {
+        $this->tipoUsuario = $tipoUsuario;
     }
 
     public function setAutenticado($autenticado) {
