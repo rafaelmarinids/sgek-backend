@@ -19,10 +19,13 @@ return [
         
         // Database settings
         'db' => [
-            'host' => 'localhost',
-            'user' => 'root',
-            'pass' => '',
-            'dbname' => 'sgek'
+            'host' => 'localhost',/*
+            'host' => '',/**/
+            'user' => 'root',/*
+            'user' => '',/**/
+            'pass' => '',/*
+            'pass' => '',/**/
+            'dbname' => 'arseventos'
         ]
     ],
 ];
