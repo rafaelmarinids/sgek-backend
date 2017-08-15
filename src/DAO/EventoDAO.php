@@ -127,14 +127,14 @@ class EventoDAO {
             $sql = "UPDATE evento e SET e.titulo = ?";
 
             if ($nomeArquivoLogomarca) {
-                $sql .= ", logomarca = ?";
+                $sql .= ", e.logomarca = ?";
             }
 
             if ($nomeArquivoPlanodefundo) {
-                $sql .= ", planodefundo = ?";
+                $sql .= ", e.planodefundo = ?";
             }
 
-            $sql .= ", cor = ?, confirmacao = ?, status = ?, mensageminicial = ?, mensagemfinal = ? WHERE e.id = ?";
+            $sql .= ", e.cor = ?, e.confirmacao = ?, e.status = ?, e.mensageminicial = ?, e.mensagemfinal = ? WHERE e.id = ?";
 
             $preparedStatement = $this->pdo->prepare($sql);
 

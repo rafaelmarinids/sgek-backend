@@ -243,7 +243,7 @@ $app->group('/rs', function () {
         $parametros = $request->getParsedBody();
 
         try {
-            $inscricao = $inscricaoBusiness->retirarKit((int) $args["id"],
+            $inscricao = $inscricaoBusiness->retirarDevolverKit((int) $args["id"],
                 $parametros['colunasFileirasConfirmacao'],
                 (object) $parametros['retirada'],
                 $usuario->id);

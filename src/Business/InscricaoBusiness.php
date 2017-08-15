@@ -70,7 +70,7 @@ class InscricaoBusiness {
      * 
      * @return type
      */
-    public function retirarKit($idTabelaFileira = NULL, $colunasFileirasConfirmacao = NULL, $retirada = NULL, $idUsuario = NULL) {
+    public function retirarDevolverKit($idTabelaFileira = NULL, $colunasFileirasConfirmacao = NULL, $retirada = NULL, $idUsuario = NULL) {
         if (!$idTabelaFileira) {
             throw new ValidacaoException("idTabelaFileira");
         }
@@ -84,19 +84,19 @@ class InscricaoBusiness {
                 }
 
                 if (!$retirada->terceiro->nome || strlen($retirada->terceiro->nome) > 250) {
-                    throw new ValidacaoException("Logomarca", "%s não pode ter mais que 250 caracateres.");
+                    throw new ValidacaoException("Nome", "%s do terceiro é necessário e não pode ter mais que 250 caracateres.");
                 }
 
-                if ($retirada->terceiro->documento && strlen($retirada->terceiro->documento) > 45) {
-                    throw new ValidacaoException("Documento", "%s não pode ter mais que 45 caracateres.");
+                if (!$retirada->terceiro->documento || strlen($retirada->terceiro->documento) > 45) {
+                    throw new ValidacaoException("Documento", "%s do terceiro é necessário e não pode ter mais que 45 caracateres.");
                 }
 
-                if ($retirada->terceiro->telefone && strlen($retirada->terceiro->telefone) > 150) {
-                    throw new ValidacaoException("Telefone", "%s não pode ter mais que 150 caracateres.");
+                if (!$retirada->terceiro->telefone || strlen($retirada->terceiro->telefone) > 150) {
+                    throw new ValidacaoException("Telefone", "%s do terceiro é necessário e não pode ter mais que 150 caracateres.");
                 }
 
                 if ($retirada->terceiro->endereco && strlen($retirada->terceiro->endereco) > 250) {
-                    throw new ValidacaoException("Endereço", "%s não pode ter mais que 250 caracateres.");
+                    throw new ValidacaoException("Endereço", "%s do terceiro não pode ter mais que 250 caracateres.");
                 }
             }
         }
@@ -107,8 +107,14 @@ class InscricaoBusiness {
 
         $inscricaoDAO = new InscricaoDAO($this->pdo);
 
-        $idRetirada = $inscricaoDAO->salvarRetirada($idTabelaFileira, $colunasFileirasConfirmacao, $retirada, $idUsuario);
-        
+        $retiradaModel = $inscricaoDAO->recuperarRetirada($idTabelaFileira);
+
+        if ($retiradaModel) {
+            $idRetirada = $inscricaoDAO->alterarRetirada($idTabelaFileira, $colunasFileirasConfirmacao, $retirada, $idUsuario);
+        } else {
+            $idRetirada = $inscricaoDAO->salvarRetirada($idTabelaFileira, $colunasFileirasConfirmacao, $retirada, $idUsuario);
+        }
+
         return $inscricaoDAO->recuperarPorIdRetirada($idRetirada);
     }
 

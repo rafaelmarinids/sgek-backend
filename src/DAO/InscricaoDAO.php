@@ -36,16 +36,13 @@ class InscricaoDAO {
         $resultadoParametros = $statement->fetch();
         
         if ($resultadoParametros) {
-            $statementInscricao = $this->pdo->prepare("SELECT * FROM inscricao_view i WHERE i.id_evento = ? AND i.indice_valor = ?");
-
-            $statementInscricao->execute(array(
-                $resultadoParametros["id_evento"],
-                $resultadoParametros["indice"]
-            ));
+            $sqlInscricao = "SELECT * FROM inscricao_view i WHERE i.id_evento = " 
+                . $resultadoParametros["id_evento"] . " AND i.indice_valor = " 
+                . $resultadoParametros["indice"];
 
             $indiceAtual = NULL;
     
-            while ($resultado = $statementInscricao->fetch()) {
+            foreach ($this->pdo->query($sqlInscricao) as $resultado) {
                 if ($indiceAtual != $resultado["indice_valor"]) {
                     $indiceAtual = $resultado["indice_valor"];
 
@@ -70,7 +67,9 @@ class InscricaoDAO {
                     $arrayColunasFileirasBusca[] = $colunaFileira;
 
                     $inscricao->setColunasFileirasBusca($arrayColunasFileirasBusca);
-                } else if ($resultado["usarnaconfirmacao"] == 1) {
+                }
+                
+                if ($resultado["usarnaconfirmacao"] == 1) {
                     $arrayColunasFileirasConfirmacao = $inscricao->getColunasFileirasConfirmacao();
 
                     $arrayColunasFileirasConfirmacao[] = $colunaFileira;
@@ -252,7 +251,7 @@ class InscricaoDAO {
             return $terceiro;
         }
         
-        return new Terceiro();
+        return NULL;
     }
 
     /**
@@ -301,6 +300,61 @@ class InscricaoDAO {
             ));
 
             $idRetirada = $this->pdo->lastInsertId();
+
+            $this->pdo->commit();
+        } catch(PDOException $e) {
+            $this->pdo->rollBack();
+        }
+
+        return $idRetirada;
+    }
+
+    /**
+     * 
+     */
+    public function alterarRetirada($idTabelaFileira = NULL, $colunasFileirasConfirmacao = NULL, $retirada = NULL, $idUsuario = NULL) {
+        $idRetirada = NULL;
+
+        try {
+            $this->pdo->beginTransaction();
+
+            $preparedStatementFileira = $this->pdo->prepare('UPDATE tabelafileira f SET valor = ? WHERE f.id = ?');
+
+            foreach ($colunasFileirasConfirmacao as $colunaFileira) {
+                $preparedStatementFileira->execute(array(
+                    $colunaFileira["fileira"]["valor"],
+                    $colunaFileira["fileira"]["id"]
+                ));
+            }
+
+            if ($retirada->terceiro && empty($retirada->terceiro->id) && $retirada->terceiro->nome) {
+                $preparedStatementTerceiro = $this->pdo->prepare('INSERT INTO terceiro (nome, documento, telefone, endereco) VALUES (?, ?, ?, ?)');
+
+                $preparedStatementTerceiro->execute(array(
+                    $retirada->terceiro->nome,
+                    !empty($retirada->terceiro->documento) ? $retirada->terceiro->documento : NULL,
+                    !empty($retirada->terceiro->telefone) ? $retirada->terceiro->telefone : NULL,
+                    !empty($retirada->terceiro->endereco) ? $retirada->terceiro->endereco : NULL                 
+                ));
+
+                $idTerceiro = $this->pdo->lastInsertId();
+            } else if ($retirada->terceiro && !empty($retirada->terceiro->id)) {
+                $idTerceiro = $retirada->terceiro->id;
+            }  else {
+                $idTerceiro = NULL;
+            }           
+
+            $preparedStatementColuna = $this->pdo->prepare('UPDATE retirada r SET r.retirado = ?, r.id_terceiro = ?, r.id_usuarioatualizacao = ?, r.datahoraatualizacao = NOW(), r.ocorrencia = ? WHERE r.id = ?');
+            
+            $preparedStatementColuna->execute(array(
+                $retirada->retirado,
+                $retirada->retirado ? $idTerceiro : NULL,
+                $idUsuario,
+                $retirada->ocorrencia,
+                $retirada->id
+            ));
+
+            $idRetirada = $retirada->id;
 
             $this->pdo->commit();
         } catch(PDOException $e) {

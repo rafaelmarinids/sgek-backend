@@ -206,8 +206,12 @@ class ImportacaoBusiness {
         $eventoBusiness->salvar($evento->getId(),
             $evento->getTitulo(),
             "Ativo",
-            $evento->getCor(),
-            $evento->getConfirmacao());
+            $evento->getCor(),//
+            $evento->getConfirmacao(),
+            NULL,
+            NULL,
+            $evento->getMensageminicial(),
+            $evento->getMensagemfinal());
 
         $importacao = new Importacao();
         $importacao->setId($evento->getId());
