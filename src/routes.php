@@ -225,9 +225,15 @@ $app->group('/rs', function () {
         unset($parametros["quantidadeRegistros"]);
         unset($parametros["pagina"]);
 
-        $inscricoes = $inscricaoBusiness->listar($evento, $parametros, $quantidadeRegistros, $pagina);
-        
-        return $response->withJson($inscricoes);
+        try {
+            $inscricoes = $inscricaoBusiness->listar($evento, $parametros, $quantidadeRegistros, $pagina);
+            
+            return $response->withJson($inscricoes);
+        } catch (\Exception $e) {
+            return $response->withStatus(500)
+                    ->withHeader('Content-Type', 'text/plain')
+                    ->write($e->getMessage());
+        }        
     });
 
     /*

@@ -3,6 +3,7 @@
 namespace DAO;
 
 use \Model\Inscricao;
+use \Model\InscricoesInformacoes;
 use \Model\Coluna;
 use \Model\Fileira;
 use \Model\ColunaFileira;
@@ -141,6 +142,8 @@ class InscricaoDAO {
         $registroInicial = ($pagina - 1) * $quantidadeRegistros;
 
         $sql .= " LIMIT $registroInicial, $quantidadeRegistros";
+
+        $inscricoesInformacoes = new InscricoesInformacoes();
         
         $inscricoes = array();
 
@@ -189,8 +192,83 @@ class InscricaoDAO {
                 $inscricao->setRetirada($this->recuperarRetirada($resultado["id_valor"]));
             }
         }
+
+        $inscricoesInformacoes->setPagina($pagina);
+
+        $totalPesquisado = $this->recuperarQuantidadeDeRegistrosPesquisados($idEvento, $filtros);
+
+        $inscricoesInformacoes->setQuantidadeRegistros($totalPesquisado);
+
+        $totalEvento = $this->recuperarQuantidadeDeRegistrosPesquisados($idEvento);
+
+        $inscricoesInformacoes->setQuantidadeTotalInscricoes($totalEvento);
+
+        $totalRetiradas = $this->recuperarQuantidadeDeRetiradas($idEvento);
+
+        $inscricoesInformacoes->setQuantidadeKitsRetirados($totalRetiradas);
+        $inscricoesInformacoes->setInscricoes($inscricoes);
         
-        return $inscricoes;
+        return $inscricoesInformacoes;
+    }
+
+    /**
+     * 
+     * @return 
+     */
+    public function recuperarQuantidadeDeRegistrosPesquisados($idEvento = NULL, $filtros = NULL) {
+        $sql = "SELECT COUNT(1) AS total FROM (SELECT * FROM inscricao_view i WHERE i.id_evento = $idEvento";
+
+        if (is_array($filtros) && !empty($filtros)) {
+            $in = " AND i.indice_valor IN (SELECT i2.indice_valor FROM inscricao_view i2 WHERE (";
+
+            $numeroDeItems = count($filtros);
+            
+            $flag = 0;
+
+            foreach ($filtros as $key => $value) {
+                if (++$flag === $numeroDeItems) {
+                    $in .= "(i2.indice_coluna = $key AND i2.valor LIKE '%$value%')";
+                } else {
+                    $in .= "(i2.indice_coluna = $key AND i2.valor LIKE '%$value%') OR ";
+                }
+            }
+
+            $in .= ") AND i2.id_evento = $idEvento GROUP BY i2.indice_valor HAVING COUNT(i2.indice_valor) = $numeroDeItems)";
+
+            $sql .= $in;
+        }
+
+        $sql .= " GROUP BY i.indice_valor) i2";
+
+        $statement = $this->pdo->prepare($sql);
+        $statement->execute();
+
+        $resultado = $statement->fetch();
+        
+        if ($resultado) {
+            return $resultado["total"];
+        }
+
+        return 0;
+    }
+
+    /**
+     * 
+     * @return 
+     */
+    public function recuperarQuantidadeDeRetiradas($idEvento = NULL) {
+        $sql = "SELECT COUNT(1) AS total FROM (retirada r INNER JOIN tabelafileira f ON r.id_tabelafileira = f.id) INNER JOIN tabelacoluna c ON f.id_tabelacoluna = c.id WHERE c.id_evento = $idEvento AND r.retirado = 1";
+
+        $statement = $this->pdo->prepare($sql);
+        $statement->execute();
+
+        $resultado = $statement->fetch();
+        
+        if ($resultado) {
+            return $resultado["total"];
+        }
+
+        return 0;
     }
 
     /**

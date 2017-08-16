@@ -5,6 +5,7 @@ namespace Business;
 use \Exception\ValidacaoException;
 use \DAO\InscricaoDAO;
 use \DAO\ColunaDAO;
+use \DAO\EventoDAO;
 
 /**
  * 
@@ -39,6 +40,18 @@ class InscricaoBusiness {
      * @return type
      */
     public function listar($idEvento = NULL, $filtros = NULL, $quantidadeRegistros = 25, $pagina = 1) {
+        $eventoDAO = new EventoDAO($this->pdo);
+
+        $evento = $eventoDAO->recuperar($idEvento);
+
+        if ($evento->getStatus() == "Inativo" || $evento->getStatus() == "Dados não importados") {
+            throw new \Exception("Não é possível consultar as inscrições para o evento informado, o mesmo encontra-se inativo ou sem importação.");
+        }
+        
+        if (!$evento->getImportacaoRealizada()) {
+            throw new \Exception("Não é possível consultar as inscrições para o evento informado, a importação não foi realizada.");
+        }
+        
         if (!$quantidadeRegistros) {
             $quantidadeRegistros = 25;
         }
@@ -109,7 +122,7 @@ class InscricaoBusiness {
 
         $retiradaModel = $inscricaoDAO->recuperarRetirada($idTabelaFileira);
 
-        if ($retiradaModel) {
+        if ($retiradaModel && $retiradaModel->getId()) {
             $idRetirada = $inscricaoDAO->alterarRetirada($idTabelaFileira, $colunasFileirasConfirmacao, $retirada, $idUsuario);
         } else {
             $idRetirada = $inscricaoDAO->salvarRetirada($idTabelaFileira, $colunasFileirasConfirmacao, $retirada, $idUsuario);
