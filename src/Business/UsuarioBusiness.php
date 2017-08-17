@@ -35,7 +35,31 @@ class UsuarioBusiness {
     public function setPdo($pdo) {
         $this->pdo = $pdo;
     }
-    
+
+     /**
+     * 
+     * @return type
+     */
+     public function recuperar($id) {
+        if (!$id) {
+            throw new ValidacaoException("id");
+        }
+            
+        $usuarioDAO = new UsuarioDAO($this->pdo);
+        
+        return $usuarioDAO->recuperarPorId($id);
+    }
+
+    /**
+     * 
+     * @return type
+     */
+     public function listar() {        
+        $usuarioDAO = new UsuarioDAO($this->pdo);
+        
+        return $usuarioDAO->listar();
+    }
+
     /**
      * 
      * @param type $email
@@ -74,5 +98,94 @@ class UsuarioBusiness {
         }
         
         throw new EmailSenhaInvalidosException("Email não encontrado!");
+    }
+
+    /**
+     * Salva as informações do novo usuário.
+     *
+     * @return type
+     */
+     public function inserir($nome = NULL, $email = NULL, $senha = NULL, $tipo = NULL) {
+        if (!$nome) {
+            throw new ValidacaoException("nome");
+        }
+
+        if (!$email) {
+            throw new ValidacaoException("email");
+        }
+
+        if (!$email) {
+            throw new ValidacaoException("senha");
+        }
+
+        if (!$tipo) {
+            throw new ValidacaoException("tipo");
+        }
+        
+        $usuarioDAO = new UsuarioDAO($this->pdo);
+
+        $idUsuario = $usuarioDAO->inserir($nome, $email, password_hash($senha, PASSWORD_BCRYPT, ["cost" => 12]), $tipo);
+
+        return $usuarioDAO->recuperarPorId($idUsuario);
+    }
+
+    /**
+     * Altera as informações do usuário.
+     *
+     * @return type
+     */
+     public function editar($id = NULL, $nome = NULL, $email = NULL, $senha = NULL, $tipo = NULL) {
+        if (!$id) {
+            throw new ValidacaoException("idUsuario");
+        }
+
+        if (!$nome) {
+            throw new ValidacaoException("nome");
+        }
+
+        if (!$email) {
+            throw new ValidacaoException("email");
+        }
+
+        if (!$email) {
+            throw new ValidacaoException("senha");
+        }
+
+        if (!$tipo) {
+            throw new ValidacaoException("tipo");
+        }
+        
+        $usuarioDAO = new UsuarioDAO($this->pdo);
+
+        $alterado = $usuarioDAO->editar($id, $nome, $email, password_hash($senha, PASSWORD_BCRYPT, ["cost" => 12]), $tipo);
+
+        if ($alterado) {
+            return $usuarioDAO->recuperarPorId($id);
+        } else {
+            throw new ValidacaoException("Não foi possível editar o usuário informado (#$id).");
+        }
+    }
+
+    /**
+     * Excluí um usuário.
+     *
+     * @return type
+     */
+     public function excluir($id) {
+        if (!$id) {
+            throw new ValidacaoException("id");
+        }
+
+        $usuarioDAO = new UsuarioDAO($this->pdo);
+
+        $usuario = $usuarioDAO->recuperarPorId($id);
+        
+        if ($usuario) {
+            if (!$usuarioDAO->excluir($id)) {
+                throw new \Exception("Não foi possível excluir o usuário informado (#$id).");
+            }
+        } else {
+            throw new ValidacaoException("Não foi possível excluir o usuário informado (#$id).");
+        }
     }
 }

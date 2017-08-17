@@ -46,6 +46,97 @@ $app->group('/rs', function () {
     $this->get('/renovar-autenticacao', function ($request, $response, $args) {
         return $response;
     });
+
+    /*
+     * Recupera a lista de usuários.
+     */
+     $this->get('/usuarios', function ($request, $response, $args) {
+        $usuariosBusiness = UsuarioBusiness::getInstance($this->db);
+
+        $usuarios = $usuariosBusiness->listar();
+        
+        return $response->withJson($usuarios);
+    });
+
+    /*
+     * Recupera um usuário por id.
+     */
+    $this->get('/usuarios/{id}', function ($request, $response, $args) {
+        $usuariosBusiness = UsuarioBusiness::getInstance($this->db);
+
+        try {
+            return $response->withJson($usuariosBusiness->recuperar((int) $args["id"]));
+        } catch (\Exception $e) {
+            return $response->withStatus(500)
+                    ->withHeader('Content-Type', 'text/plain')
+                    ->write($e->getMessage());
+        }
+    });
+
+    /*
+     * Inseri um usuário.
+     */
+    $this->post('/usuarios', function ($request, $response, $args) {
+        $usuariosBusiness = UsuarioBusiness::getInstance($this->db);
+
+        $parametros = $request->getParsedBody();
+
+        try {
+            $usuario = $usuariosBusiness->inserir(
+                filter_var($parametros['nome'], FILTER_SANITIZE_STRING),
+                filter_var($parametros['email'], FILTER_SANITIZE_STRING),
+                filter_var($parametros['senha'], FILTER_SANITIZE_STRING),
+                filter_var($parametros['tipo'], FILTER_SANITIZE_STRING)
+            );
+            
+            return $response->withJson($usuario);
+        } catch (\Exception $e) {
+            return $response->withStatus(500)
+                    ->withHeader('Content-Type', 'text/plain')
+                    ->write($e->getMessage());
+        }
+    });
+
+    /*
+     * Inseri um usuário.
+     */
+     $this->put('/usuarios/{id}', function ($request, $response, $args) {
+        $usuariosBusiness = UsuarioBusiness::getInstance($this->db);
+
+        $parametros = $request->getParsedBody();
+
+        try {
+            $usuario = $usuariosBusiness->editar((int) $args["id"],
+                filter_var($parametros['nome'], FILTER_SANITIZE_STRING),
+                filter_var($parametros['email'], FILTER_SANITIZE_STRING),
+                filter_var($parametros['senha'], FILTER_SANITIZE_STRING),
+                filter_var($parametros['tipo'], FILTER_SANITIZE_STRING)
+            );
+            
+            return $response->withJson(NULL);
+        } catch (\Exception $e) {
+            return $response->withStatus(500)
+                    ->withHeader('Content-Type', 'text/plain')
+                    ->write($e->getMessage());
+        }
+    });
+
+    /*
+     * Remove um usuário por id.
+     */
+     $this->delete('/usuarios/{id}', function ($request, $response, $args) {
+        $usuariosBusiness = UsuarioBusiness::getInstance($this->db);
+
+        try {
+            $usuariosBusiness->excluir((int) $args["id"]);
+
+            return $response->withStatus(204);
+        } catch (\Exception $e) {
+            return $response->withStatus(500)
+                    ->withHeader('Content-Type', 'text/plain')
+                    ->write($e->getMessage());
+        }
+    });
     
     /*
      * Recupera a lista de eventos.
