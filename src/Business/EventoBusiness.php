@@ -39,24 +39,30 @@ class EventoBusiness {
      * 
      * @return type
      */
-    public function listar($status = NULL) {        
+    public function listar($status = NULL, $idUsuario = NULL) {        
         $eventoDAO = new EventoDAO($this->pdo);
         
-        return $eventoDAO->listar($status);
+        return $eventoDAO->listar($status, $idUsuario);
     }
 
     /**
      * 
      * @return type
      */
-    public function recuperar($id) {
+    public function recuperar($id, $idUsuario = NULL) {
         if (!$id) {
             throw new ValidacaoException("id");
         }
             
         $eventoDAO = new EventoDAO($this->pdo);
+
+        $evento = $eventoDAO->recuperar($id, $idUsuario);
+
+        if (!$evento) {
+            throw new \Exception("O evento informado é inválido.");
+        }
         
-        return $eventoDAO->recuperar($id);
+        return $evento;
     }
 
     /**

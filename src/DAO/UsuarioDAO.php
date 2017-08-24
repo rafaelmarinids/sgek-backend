@@ -37,6 +37,16 @@ class UsuarioDAO {
             $usuario->setEmail($resultado['email']);
             $usuario->setTipo($resultado['tipo']);
             $usuario->setDataHora(date( 'd/m/Y H:i:s', strtotime($resultado["dataHora"])));
+
+            $sqlEventos = 'SELECT ue.id_evento FROM usuarioevento ue WHERE ue.id_usuario = ' . $resultado['id'];
+            
+            $eventos = array();
+            
+            foreach ($this->pdo->query($sqlEventos) as $evento) {
+                $eventos[] = $evento;
+            }
+
+            $usuario->setEventos($eventos);
             
             return $usuario;
         }
@@ -66,6 +76,16 @@ class UsuarioDAO {
             $usuario->setSenha($resultado['senha']);
             $usuario->setTipo($resultado['tipo']);
             $usuario->setDataHora(date( 'd/m/Y H:i:s', strtotime($resultado["dataHora"])));
+
+            $sqlEventos = 'SELECT ue.id_evento FROM usuarioevento ue WHERE ue.id_usuario = ' . $resultado['id'];
+            
+            $eventos = array();
+            
+            foreach ($this->pdo->query($sqlEventos) as $evento) {
+                $eventos[] = $evento;
+            }
+
+            $usuario->setEventos($eventos);
             
             return $usuario;
         }
@@ -89,6 +109,16 @@ class UsuarioDAO {
             $usuario->setEmail($resultado['email']);
             $usuario->setTipo($resultado['tipo']);
             $usuario->setDataHora(date('d/m/Y H:i:s', strtotime($resultado["dataHora"])));
+
+            $sqlEventos = 'SELECT ue.id_evento FROM usuarioevento ue WHERE ue.id_usuario = ' . $resultado['id'];
+            
+            $eventos = array();
+            
+            foreach ($this->pdo->query($sqlEventos) as $evento) {
+                $eventos[] = $evento;
+            }
+
+            $usuario->setEventos($eventos);
             
             $usuarios[] = $usuario;
         }
@@ -100,7 +130,7 @@ class UsuarioDAO {
      * 
      * @return Evento
      */
-     public function inserir($nome = NULL, $email = NULL, $senha = NULL, $tipo = NULL) {
+     public function inserir($nome = NULL, $email = NULL, $senha = NULL, $tipo = NULL, $eventos = array()) {
         try {
             $this->pdo->beginTransaction();
 
@@ -113,19 +143,32 @@ class UsuarioDAO {
                 $tipo
             ));
 
+            $idUsuario = $this->pdo->lastInsertId();
+
+            if (is_array($eventos) && !empty($eventos)) {
+                $preparedStatementEventos = $this->pdo->prepare('INSERT INTO usuarioevento (id_usuario, id_evento) VALUES (?, ?)');
+                
+                foreach ($eventos as $idEvento) {
+                    $preparedStatementEventos->execute(array(
+                        $idUsuario,
+                        $idEvento
+                    ));
+                }
+            }
+
             $this->pdo->commit();
         } catch(PDOException $e) {
             $this->pdo->rollBack();
         }
 
-        return $this->pdo->lastInsertId();
+        return $idUsuario;
     }
 
     /**
      * 
      * @return Evento
      */
-     public function editar($id, $nome = NULL, $email = NULL, $senha = NULL, $tipo = NULL) {
+     public function editar($id, $nome = NULL, $email = NULL, $senha = NULL, $tipo = NULL, $eventos = array()) {
         try {
             $this->pdo->beginTransaction();
 
@@ -140,6 +183,23 @@ class UsuarioDAO {
                 $tipo,
                 $id
             ));
+
+            $preparedStatementRemocaoEventos = $this->pdo->prepare('DELETE FROM usuarioevento WHERE id_usuario = ?');
+            
+            $removido = $preparedStatementRemocaoEventos->execute(array(
+                $id
+            ));
+
+            if (is_array($eventos) && !empty($eventos)) {
+                $preparedStatementEventos = $this->pdo->prepare('INSERT INTO usuarioevento (id_usuario, id_evento) VALUES (?, ?)');
+
+                foreach ($eventos as $idEvento) {
+                    $preparedStatementEventos->execute(array(
+                        $id,
+                        $idEvento
+                    ));
+                }
+            }
 
             $this->pdo->commit();
         } catch(PDOException $e) {

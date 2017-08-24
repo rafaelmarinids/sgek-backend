@@ -21,12 +21,30 @@ class EventoDAO {
      * 
      * @return Evento
      */
-    public function recuperar($id) {        
-        $statement = $this->pdo->prepare('SELECT * FROM evento e WHERE e.id = ?');
-        
-        $statement->execute(array(
-            $id
-        ));
+    public function recuperar($id, $idUsuario = NULL) {
+        if ($idUsuario) {
+            $sql = "(SELECT e.* FROM evento e INNER JOIN usuarioevento ue ON e.id = ue.id_evento INNER JOIN usuario u ON u.id = ue.id_usuario WHERE e.id = ? AND ue.id_usuario = ? GROUP BY e.id) ";
+            $sql .= "UNION ";
+            $sql .= "(SELECT e2.* FROM evento e2 WHERE e2.id = ? AND (SELECT COUNT(u.id) FROM usuario u WHERE u.id = ? AND u.tipo = 'administrador') = 1) ";
+            $sql .= "ORDER BY id DESC";
+
+            $statement = $this->pdo->prepare($sql);
+            
+            $statement->execute(array(
+                $id,
+                $idUsuario,
+                $id,
+                $idUsuario
+            ));
+        } else {
+            $sql = "SELECT * FROM evento e WHERE e.id = ?";
+
+            $statement = $this->pdo->prepare($sql);
+            
+            $statement->execute(array(
+                $id
+            ));
+        }
 
         $resultado = $statement->fetch();
         
@@ -55,14 +73,17 @@ class EventoDAO {
      * 
      * @return Evento
      */
-    public function listar($status = NULL) {        
-        $sql = "SELECT * FROM evento e ";
+    public function listar($status = NULL, $idUsuario = NULL) {
+        $sql = "(SELECT e.* FROM evento e INNER JOIN usuarioevento ue ON e.id = ue.id_evento INNER JOIN usuario u ON u.id = ue.id_usuario WHERE ue.id_usuario = " . $idUsuario . " ";
 
         if ($status) {
-            $sql .= "WHERE e.status = '" . $status . "' ";
+            $sql .= "AND e.status = '" . $status . "' ";
         }
 
-        $sql .= "ORDER BY e.id DESC";
+        $sql .= "GROUP BY e.id) ";
+        $sql .= "UNION ";
+        $sql .= "(SELECT e2.* FROM evento e2 WHERE (SELECT COUNT(u.id) FROM usuario u WHERE u.id = " . $idUsuario . " AND u.tipo = 'administrador') = 1) ";
+        $sql .= "ORDER BY id DESC";    
         
         $eventos = array();
         

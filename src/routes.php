@@ -86,10 +86,11 @@ $app->group('/rs', function () {
                 filter_var($parametros['nome'], FILTER_SANITIZE_STRING),
                 filter_var($parametros['email'], FILTER_SANITIZE_STRING),
                 filter_var($parametros['senha'], FILTER_SANITIZE_STRING),
-                filter_var($parametros['tipo'], FILTER_SANITIZE_STRING)
+                filter_var($parametros['tipo'], FILTER_SANITIZE_STRING),
+                filter_var_array($parametros['eventos'], FILTER_SANITIZE_STRING)
             );
             
-            return $response->withJson($usuario);
+            return $response->withJson(NULL);
         } catch (\Exception $e) {
             return $response->withStatus(500)
                     ->withHeader('Content-Type', 'text/plain')
@@ -110,7 +111,8 @@ $app->group('/rs', function () {
                 filter_var($parametros['nome'], FILTER_SANITIZE_STRING),
                 filter_var($parametros['email'], FILTER_SANITIZE_STRING),
                 filter_var($parametros['senha'], FILTER_SANITIZE_STRING),
-                filter_var($parametros['tipo'], FILTER_SANITIZE_STRING)
+                filter_var($parametros['tipo'], FILTER_SANITIZE_STRING),
+                filter_var_array($parametros['eventos'], FILTER_SANITIZE_STRING)
             );
             
             return $response->withJson(NULL);
@@ -142,13 +144,17 @@ $app->group('/rs', function () {
      * Recupera a lista de eventos.
      */
     $this->get('/eventos', function ($request, $response, $args) {
+        $token = str_replace("Bearer ", "", $request->getHeader("Authorization")[0]);
+        
+        $usuario = TokenHelper::recuperarUsuario($token);
+
         $eventoBusiness = EventoBusiness::getInstance($this->db);
 
         $parametros = $request->getQueryParams();
 
         $status = is_array($parametros) && array_key_exists("status", $parametros) ? filter_var($parametros["status"], FILTER_SANITIZE_STRING) : NULL;
 
-        $eventos = $eventoBusiness->listar($status);
+        $eventos = $eventoBusiness->listar($status, $usuario->id);
         
         return $response->withJson($eventos);
     });
@@ -157,10 +163,14 @@ $app->group('/rs', function () {
      * Recupera um evento por id.
      */
     $this->get('/eventos/{id}', function ($request, $response, $args) {
+        $token = str_replace("Bearer ", "", $request->getHeader("Authorization")[0]);
+        
+        $usuario = TokenHelper::recuperarUsuario($token);
+
         $eventoBusiness = EventoBusiness::getInstance($this->db);
 
         try {
-            return $response->withJson($eventoBusiness->recuperar((int) $args["id"]));
+            return $response->withJson($eventoBusiness->recuperar((int) $args["id"], $usuario->id));
         } catch (\Exception $e) {
             return $response->withStatus(500)
                     ->withHeader('Content-Type', 'text/plain')

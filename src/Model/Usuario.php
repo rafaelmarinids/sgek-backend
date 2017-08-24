@@ -15,14 +15,16 @@ class Usuario implements \JsonSerializable {
     private $senha;
     private $tipo;
     private $dataHora;
+    private $eventos;
     
-    public function __construct($id = NULL, $nome = NULL, $email = NULL, $senha = NULL, $tipo = NULL, $dataHora = NULL) {
+    public function __construct($id = NULL, $nome = NULL, $email = NULL, $senha = NULL, $tipo = NULL, $dataHora = NULL, $eventos = array()) {
         $this->id = $id;
         $this->nome = $nome;
         $this->email = $email;
         $this->senha = $senha;
         $this->tipo = $tipo;
         $this->dataHora = $dataHora;
+        $this->eventos = $eventos;
     }
 
     public function getId() {
@@ -49,6 +51,10 @@ class Usuario implements \JsonSerializable {
         return $this->dataHora;
     }
 
+    function getEventos() {
+        return $this->eventos;
+    }
+
     public function setId($id) {
         $this->id = $id;
     }
@@ -71,6 +77,10 @@ class Usuario implements \JsonSerializable {
     
     function setDataHora($dataHora) {
         $this->dataHora = $dataHora;
+    }
+
+    function setEventos($eventos) {
+        $this->eventos = $eventos;
     }
 
     public function jsonSerialize() {

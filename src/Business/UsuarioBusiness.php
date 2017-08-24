@@ -105,7 +105,7 @@ class UsuarioBusiness {
      *
      * @return type
      */
-     public function inserir($nome = NULL, $email = NULL, $senha = NULL, $tipo = NULL) {
+     public function inserir($nome = NULL, $email = NULL, $senha = NULL, $tipo = NULL, $eventos = NULL) {
         if (!$nome) {
             throw new ValidacaoException("nome");
         }
@@ -124,9 +124,10 @@ class UsuarioBusiness {
         
         $usuarioDAO = new UsuarioDAO($this->pdo);
 
-        $idUsuario = $usuarioDAO->inserir($nome, $email, password_hash($senha, PASSWORD_BCRYPT, ["cost" => 12]), $tipo);
+        $idUsuario = $usuarioDAO->inserir($nome, $email, password_hash($senha, PASSWORD_BCRYPT, ["cost" => 12]), $tipo, $eventos);
 
-        return $usuarioDAO->recuperarPorId($idUsuario);
+        //return $usuarioDAO->recuperarPorId($idUsuario);
+        return NULL;
     }
 
     /**
@@ -134,7 +135,7 @@ class UsuarioBusiness {
      *
      * @return type
      */
-     public function editar($id = NULL, $nome = NULL, $email = NULL, $senha = NULL, $tipo = NULL) {
+     public function editar($id = NULL, $nome = NULL, $email = NULL, $senha = NULL, $tipo = NULL, $eventos = NULL) {
         if (!$id) {
             throw new ValidacaoException("idUsuario");
         }
@@ -157,10 +158,11 @@ class UsuarioBusiness {
         
         $usuarioDAO = new UsuarioDAO($this->pdo);
 
-        $alterado = $usuarioDAO->editar($id, $nome, $email, password_hash($senha, PASSWORD_BCRYPT, ["cost" => 12]), $tipo);
+        $alterado = $usuarioDAO->editar($id, $nome, $email, password_hash($senha, PASSWORD_BCRYPT, ["cost" => 12]), $tipo, $eventos);
 
         if ($alterado) {
-            return $usuarioDAO->recuperarPorId($id);
+            //return $usuarioDAO->recuperarPorId($id);
+            return NULL;
         } else {
             throw new ValidacaoException("Não foi possível editar o usuário informado (#$id).");
         }
