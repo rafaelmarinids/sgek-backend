@@ -82,7 +82,13 @@ class EventoDAO {
 
         $sql .= "GROUP BY e.id) ";
         $sql .= "UNION ";
-        $sql .= "(SELECT e2.* FROM evento e2 WHERE (SELECT COUNT(u.id) FROM usuario u WHERE u.id = " . $idUsuario . " AND u.tipo = 'administrador') = 1) ";
+        $sql .= "(SELECT e2.* FROM evento e2 WHERE (SELECT COUNT(u.id) FROM usuario u WHERE u.id = " . $idUsuario . " AND u.tipo = 'administrador') = 1";
+        
+        if ($status) {
+            $sql .= " AND e2.status = '" . $status . "' ";
+        }
+        
+        $sql .= ") ";
         $sql .= "ORDER BY id DESC";    
         
         $eventos = array();
