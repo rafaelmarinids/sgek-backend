@@ -60,7 +60,7 @@ class UsuarioDAO {
      * @return Usuario
      */
     public function recuperar($email) {
-        $statement = $this->pdo->prepare('SELECT * FROM usuario u WHERE u.email = :email');
+        $statement = $this->pdo->prepare('SELECT * FROM usuario u WHERE u.email = :email AND u.deletado = 0');
         
         $statement->execute(array(
             ':email' => $email
@@ -98,7 +98,7 @@ class UsuarioDAO {
      * @return 
      */
     public function listar() {
-        $sql = 'SELECT * FROM usuario u ORDER BY u.tipo, u.nome ASC';
+        $sql = 'SELECT * FROM usuario u WHERE u.deletado = 0 ORDER BY u.tipo, u.nome ASC';
 
         $usuarios = array();
         
@@ -217,7 +217,7 @@ class UsuarioDAO {
         try {
             $this->pdo->beginTransaction();
 
-            $preparedStatement = $this->pdo->prepare('DELETE FROM usuario WHERE id = ?');
+            $preparedStatement = $this->pdo->prepare('UPDATE usuario u SET u.deletado = 1 WHERE u.id = ?');
 
             $excluido = $preparedStatement->execute(array(
                 $id
